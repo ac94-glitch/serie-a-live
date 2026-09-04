@@ -1,0 +1,1125 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b1220">
+  <title>Serie A Live</title>
+  <style>
+    :root{
+      --bg:#f4f6f8;
+      --card:#ffffff;
+      --ink:#101828;
+      --muted:#667085;
+      --line:#e4e7ec;
+      --accent:#0b63ce;
+      --accent-soft:#eaf3ff;
+      --live:#d92d20;
+      --green:#067647;
+      --nav:#0b1220;
+      --shadow:0 5px 18px rgba(16,24,40,.06);
+    }
+    *{box-sizing:border-box}
+    html{-webkit-text-size-adjust:100%}
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--ink);
+      min-height:100vh;
+      padding-bottom:calc(76px + env(safe-area-inset-bottom));
+    }
+    button{font:inherit}
+    .top{
+      position:sticky;
+      top:0;
+      z-index:20;
+      background:rgba(244,246,248,.94);
+      backdrop-filter:blur(14px);
+      -webkit-backdrop-filter:blur(14px);
+      border-bottom:1px solid rgba(228,231,236,.85);
+    }
+    header{
+      max-width:760px;
+      margin:0 auto;
+      padding:15px 16px 10px;
+      display:flex;
+      align-items:end;
+      justify-content:space-between;
+      gap:12px;
+    }
+    h1{
+      margin:0;
+      font-size:24px;
+      line-height:1;
+      letter-spacing:-.03em;
+    }
+    .season{
+      margin-top:5px;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:600;
+    }
+    .updated{
+      color:var(--muted);
+      font-size:11px;
+      white-space:nowrap;
+      text-align:right;
+    }
+    main{
+      max-width:760px;
+      margin:0 auto;
+      padding:14px 12px 22px;
+    }
+    .round-nav{
+      display:grid;
+      grid-template-columns:46px 1fr 46px;
+      gap:8px;
+      align-items:center;
+      margin-bottom:10px;
+    }
+    .round-btn,.round-center,.today-btn{
+      border:1px solid var(--line);
+      background:var(--card);
+      border-radius:13px;
+      min-height:44px;
+      color:var(--ink);
+      box-shadow:var(--shadow);
+    }
+    .round-btn{
+      font-size:25px;
+      line-height:1;
+      font-weight:400;
+    }
+    .round-btn:disabled{opacity:.3}
+    .round-center{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:800;
+      font-size:14px;
+      letter-spacing:.02em;
+    }
+    .today-wrap{text-align:center;margin:0 0 14px}
+    .today-btn{
+      min-height:34px;
+      padding:0 13px;
+      color:var(--accent);
+      font-size:12px;
+      font-weight:700;
+      box-shadow:none;
+    }
+    .date-label{
+      margin:18px 4px 8px;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.07em;
+    }
+    .match{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:18px;
+      margin-bottom:10px;
+      overflow:hidden;
+      box-shadow:var(--shadow);
+    }
+    .match.live{border-color:#f2b8b5}
+    .match-main{
+      display:grid;
+      grid-template-columns:1fr 78px 1fr;
+      align-items:center;
+      gap:5px;
+      padding:15px 12px 12px;
+    }
+    .team{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:7px;
+      text-align:center;
+      min-width:0;
+      font-size:13px;
+      font-weight:750;
+    }
+    .team img{
+      width:38px;height:38px;object-fit:contain;
+    }
+    .team-name{
+      width:100%;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .scorebox{text-align:center}
+    .score{
+      font-size:27px;
+      font-weight:850;
+      letter-spacing:-.04em;
+      line-height:1.05;
+    }
+    .ko{
+      font-size:20px;
+      font-weight:800;
+      line-height:1.1;
+    }
+    .status{
+      display:inline-block;
+      margin-top:6px;
+      padding:3px 7px;
+      border-radius:99px;
+      background:#f2f4f7;
+      color:var(--muted);
+      font-size:10px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.04em;
+    }
+    .status.live{
+      background:#fee4e2;
+      color:var(--live);
+    }
+    .status.done{color:var(--green);background:#ecfdf3}
+    .events{
+      border-top:1px solid var(--line);
+      padding:9px 12px 11px;
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:4px 12px;
+      background:#fcfcfd;
+    }
+    .goal{
+      font-size:12.5px;
+      line-height:1.35;
+      min-width:0;
+    }
+    .goal.away{text-align:right}
+    .goal .assist{
+      display:block;
+      color:var(--muted);
+      font-size:11.5px;
+      margin-top:1px;
+    }
+    .minute{color:var(--muted);font-weight:650}
+    .empty-events{
+      grid-column:1/-1;
+      text-align:center;
+      color:var(--muted);
+      font-size:12px;
+      padding:2px 0;
+    }
+    .section-title{
+      margin:2px 4px 12px;
+      font-size:20px;
+      letter-spacing:-.025em;
+    }
+    .table-card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:18px;
+      overflow:hidden;
+      box-shadow:var(--shadow);
+    }
+    .stand-head,.stand-row{
+      display:grid;
+      grid-template-columns:27px minmax(130px,1fr) 28px 28px 28px 28px 34px 38px;
+      align-items:center;
+      gap:3px;
+      padding:9px 8px;
+      font-size:11px;
+    }
+    .stand-head{
+      color:var(--muted);
+      background:#f9fafb;
+      text-transform:uppercase;
+      font-size:9px;
+      font-weight:800;
+      border-bottom:1px solid var(--line);
+    }
+    .stand-row{
+      min-height:47px;
+      border-bottom:1px solid var(--line);
+    }
+    .stand-row:last-child{border-bottom:0}
+    .pos{text-align:center;font-weight:800}
+    .club{
+      min-width:0;
+      display:flex;
+      align-items:center;
+      gap:7px;
+      font-weight:700;
+      font-size:12px;
+    }
+    .club img{width:24px;height:24px;object-fit:contain;flex:0 0 auto}
+    .club span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .num{text-align:center;font-variant-numeric:tabular-nums}
+    .pts{font-weight:850}
+    .leader-row{
+      display:grid;
+      grid-template-columns:34px 1fr 52px;
+      gap:8px;
+      align-items:center;
+      min-height:61px;
+      padding:8px 12px;
+      border-bottom:1px solid var(--line);
+    }
+    .leader-row:last-child{border-bottom:0}
+    .rank{
+      font-size:17px;
+      font-weight:850;
+      text-align:center;
+    }
+    .player{min-width:0}
+    .player-name{
+      font-size:14px;
+      font-weight:800;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .player-team{
+      margin-top:3px;
+      color:var(--muted);
+      font-size:11.5px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .leader-value{
+      text-align:center;
+      font-size:21px;
+      font-weight:900;
+    }
+    .leader-symbol{
+      display:block;
+      font-size:14px;
+      line-height:1;
+      margin-bottom:2px;
+    }
+    .message{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:34px 18px;
+      text-align:center;
+      color:var(--muted);
+      font-size:13px;
+      box-shadow:var(--shadow);
+    }
+    .spinner{
+      width:25px;height:25px;border-radius:50%;
+      border:3px solid var(--line);border-top-color:var(--accent);
+      margin:0 auto 11px;
+      animation:spin .8s linear infinite;
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .error{
+      margin-bottom:10px;
+      padding:10px 12px;
+      border-radius:12px;
+      background:#fff4ed;
+      color:#b54708;
+      font-size:12px;
+      display:none;
+    }
+    .bottom-nav{
+      position:fixed;
+      z-index:30;
+      left:0;right:0;bottom:0;
+      height:calc(64px + env(safe-area-inset-bottom));
+      padding-bottom:env(safe-area-inset-bottom);
+      background:rgba(11,18,32,.97);
+      backdrop-filter:blur(14px);
+      -webkit-backdrop-filter:blur(14px);
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      box-shadow:0 -5px 20px rgba(16,24,40,.14);
+    }
+    .tab{
+      appearance:none;
+      border:0;
+      background:transparent;
+      color:#98a2b3;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:3px;
+      font-size:9.5px;
+      font-weight:750;
+      padding:5px 2px 3px;
+    }
+    .tab .ico{font-size:20px;line-height:1}
+    .tab.active{color:#fff}
+    .tab.active .ico{transform:translateY(-1px)}
+    .footnote{
+      margin:14px 5px 0;
+      text-align:center;
+      color:#98a2b3;
+      font-size:10px;
+      line-height:1.4;
+    }
+    @media(min-width:650px){
+      main{padding-left:18px;padding-right:18px}
+      .match-main{padding-left:24px;padding-right:24px}
+      .stand-head,.stand-row{
+        grid-template-columns:36px minmax(200px,1fr) 40px 40px 40px 40px 48px 52px;
+        font-size:12px;
+      }
+      .stand-head{font-size:10px}
+    }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <header>
+      <div>
+        <h1>Serie A Live</h1>
+        <div class="season" id="seasonLabel">Serie A</div>
+      </div>
+      <div class="updated" id="updated">—</div>
+    </header>
+  </div>
+
+  <main>
+    <div class="error" id="error"></div>
+    <div id="content">
+      <div class="message"><div class="spinner"></div>Carico i dati…</div>
+    </div>
+    <div class="footnote">Dati sportivi da endpoint ESPN pubblicamente accessibili e non ufficialmente documentati. Marcatori e assist vengono ricostruiti dai dati delle partite.</div>
+  </main>
+
+  <nav class="bottom-nav" aria-label="Navigazione principale">
+    <button class="tab active" data-tab="matches"><span class="ico">⚽</span><span>PARTITE</span></button>
+    <button class="tab" data-tab="standings"><span class="ico">📊</span><span>CLASSIFICA</span></button>
+    <button class="tab" data-tab="scorers"><span class="ico">🥇</span><span>MARCATORI</span></button>
+    <button class="tab" data-tab="assists"><span class="ico">👟</span><span>ASSIST</span></button>
+  </nav>
+
+<script>
+(() => {
+  "use strict";
+
+  const SITE = "https://site.api.espn.com/apis/site/v2/sports/soccer/ita.1";
+  const STANDINGS = "https://site.api.espn.com/apis/v2/sports/soccer/ita.1/standings";
+  const CORE = "https://sports.core.api.espn.com/v2/sports/soccer/leagues/ita.1";
+  const REFRESH_MS = 60000;
+
+  const content = document.getElementById("content");
+  const errorBox = document.getElementById("error");
+  const updated = document.getElementById("updated");
+  const seasonLabel = document.getElementById("seasonLabel");
+
+  let activeTab = "matches";
+  let rounds = {};
+  let currentRound = 1;
+  let selectedRound = 1;
+  let seasonYear = new Date().getFullYear();
+  let seasonText = "Serie A";
+  let allEvents = [];
+  let matchDetailsCache = new Map();
+  let summaryCache = new Map();
+  let standingsCache = null;
+  let leadersCache = { scorers:null, assists:null };
+  const refCache = new Map();
+
+  const esc = value => String(value ?? "")
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+
+  const two = n => String(n).padStart(2,"0");
+  const fmtDateKey = d => `${d.getUTCFullYear()}${two(d.getUTCMonth()+1)}${two(d.getUTCDate())}`;
+
+  function setUpdated(){
+    updated.textContent = "Agg. " + new Date().toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"});
+  }
+
+  function showError(text){
+    errorBox.textContent = text;
+    errorBox.style.display = "block";
+  }
+  function clearError(){ errorBox.style.display = "none"; }
+
+  async function getJson(url){
+    const r = await fetch(url, {cache:"no-store"});
+    if(!r.ok) throw new Error("HTTP " + r.status);
+    return r.json();
+  }
+
+  function loading(text="Carico i dati…"){
+    content.innerHTML = `<div class="message"><div class="spinner"></div>${esc(text)}</div>`;
+  }
+
+  function dateLabel(iso){
+    const d = new Date(iso);
+    return d.toLocaleDateString("it-IT",{weekday:"long",day:"numeric",month:"long"});
+  }
+
+  function timeLabel(iso){
+    return new Date(iso).toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"});
+  }
+
+  function teamName(c){
+    return c?.team?.shortDisplayName || c?.team?.displayName || c?.team?.name || "—";
+  }
+  function teamLogo(c){
+    return c?.team?.logo || c?.team?.logos?.[0]?.href || "";
+  }
+
+  function stateOf(ev){
+    const s = ev?.status?.type?.state;
+    return s === "in" ? "live" : s === "post" ? "done" : "pre";
+  }
+
+  function roundNumberFromEvent(ev){
+    const candidates = [
+      ev?.week?.number,
+      ev?.competitions?.[0]?.week?.number,
+      ev?.season?.week?.number
+    ];
+    for(const n of candidates){
+      const x = Number(n);
+      if(Number.isFinite(x) && x > 0) return x;
+    }
+    return null;
+  }
+
+  function groupIntoRounds(events){
+    const explicit = {};
+    let explicitCount = 0;
+
+    for(const ev of events){
+      const n = roundNumberFromEvent(ev);
+      if(n){
+        (explicit[n] ||= []).push(ev);
+        explicitCount++;
+      }
+    }
+    if(explicitCount >= Math.max(20, events.length * 0.7)){
+      Object.values(explicit).forEach(list => list.sort((a,b)=>new Date(a.date)-new Date(b.date)));
+      return explicit;
+    }
+
+    const out = {};
+    let n = 1, current = [], seen = new Set();
+    const sorted = [...events].sort((a,b)=>new Date(a.date)-new Date(b.date));
+    for(const ev of sorted){
+      const ids = (ev?.competitions?.[0]?.competitors || []).map(c => String(c.id));
+      if(current.length && ids.some(id => seen.has(id))){
+        out[n++] = current;
+        current = [];
+        seen = new Set();
+      }
+      current.push(ev);
+      ids.forEach(id => seen.add(id));
+    }
+    if(current.length) out[n] = current;
+    return out;
+  }
+
+  function detectCurrentRound(){
+    const nums = Object.keys(rounds).map(Number).sort((a,b)=>a-b);
+    if(!nums.length) return 1;
+
+    const live = nums.find(n => rounds[n].some(e => stateOf(e) === "live"));
+    if(live) return live;
+
+    const now = Date.now();
+    let latestStarted = nums[0];
+    for(const n of nums){
+      const times = rounds[n].map(e => new Date(e.date).getTime()).filter(Number.isFinite);
+      const first = Math.min(...times);
+      if(Number.isFinite(first) && first <= now) latestStarted = n;
+    }
+    return latestStarted;
+  }
+
+  async function loadSeason(){
+    const board = await getJson(`${SITE}/scoreboard?_=${Date.now()}`);
+    const league = board?.leagues?.[0];
+    if(!league?.season?.startDate || !league?.season?.endDate) throw new Error("Stagione non disponibile");
+
+    seasonYear = Number(league.season.year) || new Date(league.season.startDate).getFullYear();
+    const y2 = String(seasonYear + 1).slice(-2);
+    seasonText = `Serie A ${seasonYear}/${y2}`;
+    seasonLabel.textContent = seasonText;
+
+    const start = new Date(league.season.startDate);
+    const end = new Date(league.season.endDate);
+    const ranges = [];
+    let cur = new Date(Date.UTC(start.getUTCFullYear(),start.getUTCMonth(),start.getUTCDate()));
+
+    while(cur <= end){
+      const blockEnd = new Date(Math.min(cur.getTime() + 13*86400000, end.getTime()));
+      ranges.push(`${fmtDateKey(cur)}-${fmtDateKey(blockEnd)}`);
+      cur = new Date(blockEnd.getTime() + 86400000);
+    }
+
+    const chunks = await Promise.all(
+      ranges.map(rng =>
+        getJson(`${SITE}/scoreboard?dates=${rng}`).catch(()=>({events:[]}))
+      )
+    );
+
+    const map = new Map();
+    for(const ev of board.events || []) map.set(ev.id, ev);
+    for(const chunk of chunks){
+      for(const ev of chunk.events || []) if(!map.has(ev.id)) map.set(ev.id, ev);
+    }
+
+    allEvents = [...map.values()];
+    rounds = groupIntoRounds(allEvents);
+    currentRound = detectCurrentRound();
+    selectedRound = currentRound;
+    setUpdated();
+  }
+
+  function minuteOf(detail){
+    const display = detail?.clock?.displayValue || "";
+    return display || "";
+  }
+
+  function extractGoals(summary, homeId){
+    const details = summary?.header?.competitions?.[0]?.details || [];
+    const goals = [];
+
+    for(const d of details){
+      if(!d?.scoringPlay || d?.shootout) continue;
+      const raw = d.participants || d.athletesInvolved || [];
+      const athletes = raw.map(x => x?.athlete || x).filter(Boolean);
+      const scorer = athletes?.[0]?.displayName || athletes?.[0]?.fullName || "—";
+      let assist = "";
+      if(!d.penaltyKick && !d.ownGoal && athletes.length > 1){
+        assist = athletes?.[1]?.displayName || athletes?.[1]?.fullName || "";
+      }
+
+      const teamId = d?.team?.id;
+      goals.push({
+        side: String(teamId) === String(homeId) ? "home" : "away",
+        scorer,
+        assist,
+        minute: minuteOf(d),
+        penalty: !!d.penaltyKick,
+        ownGoal: !!d.ownGoal
+      });
+    }
+    return goals;
+  }
+
+  async function summaryFor(ev){
+    if(summaryCache.has(ev.id)) return summaryCache.get(ev.id);
+    const promise = getJson(`${SITE}/summary?event=${encodeURIComponent(ev.id)}`);
+    summaryCache.set(ev.id,promise);
+    try{
+      return await promise;
+    }catch(e){
+      summaryCache.delete(ev.id);
+      throw e;
+    }
+  }
+
+  async function detailsFor(ev, homeId){
+    if(matchDetailsCache.has(ev.id)) return matchDetailsCache.get(ev.id);
+    try{
+      const sm = await summaryFor(ev);
+      const value = {goals:extractGoals(sm,homeId)};
+      matchDetailsCache.set(ev.id,value);
+      return value;
+    }catch{
+      return {goals:[]};
+    }
+  }
+
+  async function matchModel(ev){
+    const comp = ev?.competitions?.[0];
+    const cs = comp?.competitors || [];
+    const home = cs.find(x=>x.homeAway==="home") || cs[0];
+    const away = cs.find(x=>x.homeAway==="away") || cs[1];
+    const status = stateOf(ev);
+
+    let goals = [];
+    if(status !== "pre" && home){
+      goals = (await detailsFor(ev,home.id)).goals;
+    }
+
+    const score = c => {
+      const n = Number.parseInt(c?.score,10);
+      return Number.isFinite(n) ? n : 0;
+    };
+
+    let statusText = "Da giocare";
+    if(status === "done") statusText = "Finale";
+    if(status === "live"){
+      const t = ev?.status?.type;
+      statusText = /half/i.test(t?.description || "") ? "Intervallo" :
+        (ev?.status?.displayClock || t?.shortDetail || "LIVE");
+    }
+
+    return {
+      id:ev.id,
+      date:ev.date,
+      status,
+      statusText,
+      home:{id:home?.id,name:teamName(home),logo:teamLogo(home),score:score(home)},
+      away:{id:away?.id,name:teamName(away),logo:teamLogo(away),score:score(away)},
+      goals
+    };
+  }
+
+  function goalHtml(g){
+    const tag = g.penalty ? " (rig.)" : g.ownGoal ? " (aut.)" : "";
+    const assist = g.assist ? `<span class="assist">👟 ${esc(g.assist)}</span>` : "";
+    return `<div class="goal ${g.side}">
+      ⚽ ${esc(g.scorer)} <span class="minute">${esc(g.minute)}${esc(tag)}</span>${assist}
+    </div>`;
+  }
+
+  function matchHtml(m){
+    const scoreCenter = m.status === "pre"
+      ? `<div class="ko">${esc(timeLabel(m.date))}</div>`
+      : `<div class="score">${m.home.score}–${m.away.score}</div>`;
+
+    const statusClass = m.status === "live" ? "live" : m.status === "done" ? "done" : "";
+    const homeGoals = m.goals.filter(g=>g.side==="home");
+    const awayGoals = m.goals.filter(g=>g.side==="away");
+    let events = "";
+
+    if(m.status !== "pre"){
+      const max = Math.max(homeGoals.length, awayGoals.length);
+      if(max){
+        const cells = [];
+        for(let i=0;i<max;i++){
+          cells.push(homeGoals[i] ? goalHtml(homeGoals[i]) : "<div></div>");
+          cells.push(awayGoals[i] ? goalHtml(awayGoals[i]) : "<div></div>");
+        }
+        events = `<div class="events">${cells.join("")}</div>`;
+      }else{
+        events = `<div class="events"><div class="empty-events">Nessun gol.</div></div>`;
+      }
+    }
+
+    return `<article class="match ${esc(m.status)}">
+      <div class="match-main">
+        <div class="team">
+          ${m.home.logo ? `<img src="${esc(m.home.logo)}" alt="" loading="lazy">` : ""}
+          <div class="team-name">${esc(m.home.name)}</div>
+        </div>
+        <div class="scorebox">
+          ${scoreCenter}
+          <span class="status ${statusClass}">${esc(m.statusText)}</span>
+        </div>
+        <div class="team">
+          ${m.away.logo ? `<img src="${esc(m.away.logo)}" alt="" loading="lazy">` : ""}
+          <div class="team-name">${esc(m.away.name)}</div>
+        </div>
+      </div>
+      ${events}
+    </article>`;
+  }
+
+  async function renderMatches(){
+    clearError();
+    const nums = Object.keys(rounds).map(Number).sort((a,b)=>a-b);
+    if(!nums.length){
+      content.innerHTML = `<div class="message">Calendario non disponibile.</div>`;
+      return;
+    }
+
+    selectedRound = Math.min(Math.max(selectedRound,nums[0]),nums[nums.length-1]);
+    loading(`Carico la giornata ${selectedRound}…`);
+
+    const models = await Promise.all((rounds[selectedRound] || []).map(matchModel));
+    models.sort((a,b)=>new Date(a.date)-new Date(b.date));
+
+    const grouped = new Map();
+    for(const m of models){
+      const key = new Date(m.date).toLocaleDateString("it-IT");
+      if(!grouped.has(key)) grouped.set(key,{label:dateLabel(m.date),matches:[]});
+      grouped.get(key).matches.push(m);
+    }
+
+    const prevDisabled = selectedRound <= nums[0] ? "disabled" : "";
+    const nextDisabled = selectedRound >= nums[nums.length-1] ? "disabled" : "";
+    const today = selectedRound !== currentRound
+      ? `<div class="today-wrap"><button class="today-btn" id="todayBtn">TORNA ALLA GIORNATA CORRENTE</button></div>`
+      : "";
+
+    let html = `<div class="round-nav">
+      <button class="round-btn" id="prevRound" ${prevDisabled} aria-label="Giornata precedente">‹</button>
+      <div class="round-center">GIORNATA ${selectedRound}</div>
+      <button class="round-btn" id="nextRound" ${nextDisabled} aria-label="Giornata successiva">›</button>
+    </div>${today}`;
+
+    for(const group of grouped.values()){
+      html += `<div class="date-label">${esc(group.label)}</div>`;
+      html += group.matches.map(matchHtml).join("");
+    }
+    if(!models.length) html += `<div class="message">Nessuna partita disponibile per questa giornata.</div>`;
+    content.innerHTML = html;
+
+    document.getElementById("prevRound")?.addEventListener("click",()=>{
+      selectedRound--; renderMatches();
+    });
+    document.getElementById("nextRound")?.addEventListener("click",()=>{
+      selectedRound++; renderMatches();
+    });
+    document.getElementById("todayBtn")?.addEventListener("click",()=>{
+      selectedRound=currentRound; renderMatches();
+    });
+    setUpdated();
+  }
+
+  function stat(entry, names){
+    const stats = entry?.stats || [];
+    for(const name of names){
+      const x = stats.find(s =>
+        String(s.name||"").toLowerCase() === String(name).toLowerCase() ||
+        String(s.abbreviation||"").toLowerCase() === String(name).toLowerCase()
+      );
+      if(x) return x.value ?? x.displayValue ?? 0;
+    }
+    return 0;
+  }
+
+  async function renderStandings(){
+    clearError();
+    loading("Carico la classifica…");
+    try{
+      if(!standingsCache) standingsCache = await getJson(`${STANDINGS}?season=${seasonYear}&_=${Date.now()}`);
+
+      let entries = [];
+      const walk = node => {
+        if(!node || typeof node !== "object") return;
+        if(Array.isArray(node?.standings?.entries) && node.standings.entries.length) entries.push(...node.standings.entries);
+        if(Array.isArray(node.children)) node.children.forEach(walk);
+      };
+      walk(standingsCache);
+
+      const seen = new Set();
+      entries = entries.filter(e=>{
+        const id = e?.team?.id;
+        if(!id || seen.has(id)) return false;
+        seen.add(id); return true;
+      });
+
+      entries.sort((a,b)=>
+        Number(stat(a,["rank"])) - Number(stat(b,["rank"])) ||
+        Number(stat(b,["points","P"])) - Number(stat(a,["points","P"]))
+      );
+
+      let html = `<h2 class="section-title">Classifica</h2>
+      <div class="table-card">
+        <div class="stand-head">
+          <div>#</div><div>Squadra</div><div>PG</div><div>V</div><div>N</div><div>P</div><div>DR</div><div>PT</div>
+        </div>`;
+
+      entries.forEach((e,i)=>{
+        const team = e.team || {};
+        const logo = team.logos?.[0]?.href || team.logo || "";
+        const pos = stat(e,["rank"]) || i+1;
+        const gp = stat(e,["gamesPlayed","GP"]);
+        const w = stat(e,["wins","W"]);
+        const d = stat(e,["ties","draws","D"]);
+        const l = stat(e,["losses","L"]);
+        const gd = stat(e,["pointDifferential","goalDifference","GD"]);
+        const pts = stat(e,["points","P"]);
+        const gdText = Number(gd)>0 ? `+${gd}` : gd;
+
+        html += `<div class="stand-row">
+          <div class="pos">${esc(pos)}</div>
+          <div class="club">${logo?`<img src="${esc(logo)}" alt="" loading="lazy">`:""}<span>${esc(team.shortDisplayName||team.displayName||team.name||"—")}</span></div>
+          <div class="num">${esc(gp)}</div>
+          <div class="num">${esc(w)}</div>
+          <div class="num">${esc(d)}</div>
+          <div class="num">${esc(l)}</div>
+          <div class="num">${esc(gdText)}</div>
+          <div class="num pts">${esc(pts)}</div>
+        </div>`;
+      });
+
+      html += `</div>`;
+      if(!entries.length) html = `<div class="message">Classifica momentaneamente non disponibile.</div>`;
+      content.innerHTML = html;
+      setUpdated();
+    }catch(e){
+      content.innerHTML = `<div class="message">Non riesco a caricare la classifica in questo momento.</div>`;
+      showError("Errore nel collegamento ai dati della classifica.");
+    }
+  }
+
+  function normalizeRef(url){
+    if(!url) return "";
+    return String(url).replace(/^http:/,"https:");
+  }
+
+  async function resolveRef(obj){
+    if(!obj) return null;
+    if(obj.displayName || obj.name || obj.fullName) return obj;
+    const ref = normalizeRef(obj.$ref);
+    if(!ref) return obj;
+    if(refCache.has(ref)) return refCache.get(ref);
+    const p = getJson(ref).catch(()=>null);
+    refCache.set(ref,p);
+    return p;
+  }
+
+  function numberValue(v){
+    if(typeof v === "number") return Number.isFinite(v) ? v : 0;
+    const n = Number.parseFloat(String(v ?? "0").replace(",","."));
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  function labelIndex(labels, names, wanted){
+    const all = labels.map((x,i)=>({i,t:String(x||"").trim().toLowerCase()}));
+    const ns = (names || []).map((x,i)=>({i,t:String(x||"").trim().toLowerCase()}));
+    const exact = wanted.map(x=>x.toLowerCase());
+    let hit = all.find(x=>exact.includes(x.t));
+    if(hit) return hit.i;
+    hit = ns.find(x=>exact.includes(x.t));
+    return hit ? hit.i : -1;
+  }
+
+  function extractBoxPlayerStats(summary){
+    const groups = summary?.boxscore?.players || [];
+    const byPlayer = new Map();
+
+    for(const group of groups){
+      const team = group?.team || {};
+      const teamName = team.shortDisplayName || team.displayName || team.name || "—";
+      for(const category of group?.statistics || []){
+        const labels = category?.labels || [];
+        const names = category?.names || [];
+        const gIdx = labelIndex(labels,names,["g","gl","goals","goals scored","totalgoals"]);
+        const aIdx = labelIndex(labels,names,["a","ast","assists","goal assists","goalassists"]);
+        if(gIdx < 0 && aIdx < 0) continue;
+
+        for(const row of category?.athletes || []){
+          const athlete = row?.athlete || row;
+          if(!athlete) continue;
+          const stats = row?.stats || row?.statistics || [];
+          const goals = gIdx >= 0 ? numberValue(stats[gIdx]) : 0;
+          const assists = aIdx >= 0 ? numberValue(stats[aIdx]) : 0;
+          if(goals <= 0 && assists <= 0) continue;
+
+          const id = athlete.id || `${athlete.displayName || athlete.fullName}|${team.id || teamName}`;
+          const old = byPlayer.get(String(id)) || {
+            id:String(id),
+            name:athlete.displayName || athlete.fullName || athlete.name || "—",
+            team:teamName,
+            goals:0,
+            assists:0
+          };
+          old.goals += goals;
+          old.assists += assists;
+          byPlayer.set(String(id),old);
+        }
+      }
+    }
+    return [...byPlayer.values()];
+  }
+
+  function scoreboardGoalStats(ev){
+    const comp = ev?.competitions?.[0];
+    const teams = new Map((comp?.competitors || []).map(c=>[
+      String(c.id),
+      c?.team?.shortDisplayName || c?.team?.displayName || c?.team?.name || "—"
+    ]));
+    const out = [];
+    for(const d of comp?.details || []){
+      if(!d?.scoringPlay || d?.shootout || d?.ownGoal) continue;
+      const athlete = (d.athletesInvolved || d.participants || [])?.[0];
+      const a = athlete?.athlete || athlete;
+      if(!a) continue;
+      out.push({
+        id:String(a.id || `${a.displayName || a.fullName}|${d?.team?.id || ""}`),
+        name:a.displayName || a.fullName || a.name || "—",
+        team:teams.get(String(d?.team?.id)) || "—",
+        goals:1,
+        assists:0
+      });
+    }
+    return out;
+  }
+
+  function gameStatsStorageKey(ev){
+    return `serie-a-live-v11-${seasonYear}-${ev.id}`;
+  }
+
+  function readStoredGameStats(ev){
+    if(stateOf(ev) !== "done") return null;
+    try{
+      const raw = localStorage.getItem(gameStatsStorageKey(ev));
+      return raw ? JSON.parse(raw) : null;
+    }catch{ return null; }
+  }
+
+  function storeGameStats(ev,rows){
+    if(stateOf(ev) !== "done") return;
+    try{ localStorage.setItem(gameStatsStorageKey(ev),JSON.stringify(rows)); }catch{}
+  }
+
+  async function statsForGame(ev){
+    const stored = readStoredGameStats(ev);
+    if(stored) return stored;
+
+    let rows = [];
+    try{
+      const summary = await summaryFor(ev);
+      rows = extractBoxPlayerStats(summary);
+    }catch{}
+
+    const hasGoalRows = rows.some(r=>r.goals>0);
+    if(!hasGoalRows){
+      const fallback = scoreboardGoalStats(ev);
+      const merged = new Map(rows.map(r=>[r.id,{...r}]));
+      for(const r of fallback){
+        const old = merged.get(r.id) || {...r,goals:0,assists:0};
+        old.goals += r.goals;
+        merged.set(r.id,old);
+      }
+      rows = [...merged.values()];
+    }
+
+    storeGameStats(ev,rows);
+    return rows;
+  }
+
+  async function mapWithConcurrency(items,limit,fn,onProgress){
+    const results = new Array(items.length);
+    let next = 0, done = 0;
+    async function worker(){
+      while(true){
+        const i = next++;
+        if(i >= items.length) return;
+        try{ results[i] = await fn(items[i],i); }
+        catch{ results[i] = []; }
+        done++;
+        if(onProgress) onProgress(done,items.length);
+      }
+    }
+    await Promise.all(Array.from({length:Math.min(limit,items.length)},worker));
+    return results;
+  }
+
+  async function buildSeasonLeaders(){
+    if(leadersCache.scorers && leadersCache.assists) return leadersCache;
+    const played = allEvents
+      .filter(ev=>stateOf(ev) !== "pre")
+      .sort((a,b)=>new Date(a.date)-new Date(b.date));
+
+    if(!played.length) return {scorers:[],assists:[]};
+
+    const gameRows = await mapWithConcurrency(played,5,statsForGame,(done,total)=>{
+      content.innerHTML = `<div class="message"><div class="spinner"></div>Aggiorno le statistiche… ${done}/${total}</div>`;
+    });
+
+    const totals = new Map();
+    for(const rows of gameRows){
+      for(const r of rows || []){
+        const key = r.id || `${r.name}|${r.team}`;
+        const old = totals.get(key) || {id:key,name:r.name,team:r.team,goals:0,assists:0};
+        old.goals += numberValue(r.goals);
+        old.assists += numberValue(r.assists);
+        if(old.team === "—" && r.team !== "—") old.team = r.team;
+        totals.set(key,old);
+      }
+    }
+
+    const rankRows = (field) => [...totals.values()]
+      .filter(r=>r[field] > 0)
+      .sort((a,b)=>b[field]-a[field] || b.goals-a.goals || a.name.localeCompare(b.name,"it"))
+      .slice(0,30)
+      .map((r,i)=>({rank:i+1,name:r.name,team:r.team,value:r[field]}));
+
+    leadersCache.scorers = rankRows("goals");
+    leadersCache.assists = rankRows("assists");
+    return leadersCache;
+  }
+
+  async function makeLeaderRows(type){
+    const leaders = await buildSeasonLeaders();
+    return leaders[type] || [];
+  }
+
+  async function renderLeaders(type){
+    clearError();
+    const isGoals = type === "scorers";
+    loading(isGoals ? "Carico i marcatori…" : "Carico gli assist…");
+    try{
+      const rows = await makeLeaderRows(type);
+      if(!rows.length){
+        content.innerHTML = `<div class="message">${isGoals ? "Nessun marcatore" : "Nessun assist"} disponibile al momento.</div>`;
+        return;
+      }
+      let html = `<h2 class="section-title">${isGoals ? "Marcatori" : "Assist"}</h2><div class="table-card">`;
+      rows.forEach(r=>{
+        html += `<div class="leader-row">
+          <div class="rank">${r.rank}</div>
+          <div class="player">
+            <div class="player-name">${esc(r.name)}</div>
+            <div class="player-team">${esc(r.team)}</div>
+          </div>
+          <div class="leader-value"><span class="leader-symbol">${isGoals ? "⚽" : "👟"}</span>${esc(r.value)}</div>
+        </div>`;
+      });
+      html += `</div>`;
+      content.innerHTML = html;
+      setUpdated();
+    }catch(e){
+      content.innerHTML = `<div class="message">Non riesco a costruire ${isGoals ? "la classifica marcatori" : "la classifica assist"} in questo momento.</div>`;
+      showError("Errore temporaneo durante il caricamento delle statistiche giocatori.");
+    }
+  }
+
+  async function renderActive(){
+    if(activeTab === "matches") return renderMatches();
+    if(activeTab === "standings") return renderStandings();
+    if(activeTab === "scorers") return renderLeaders("scorers");
+    if(activeTab === "assists") return renderLeaders("assists");
+  }
+
+  document.querySelectorAll(".tab").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+      btn.classList.add("active");
+      activeTab = btn.dataset.tab;
+      renderActive();
+      window.scrollTo({top:0,behavior:"smooth"});
+    });
+  });
+
+  async function refreshCurrentRound(){
+    if(activeTab !== "matches" || selectedRound !== currentRound) return;
+    const evs = rounds[currentRound] || [];
+    if(!evs.length) return;
+    const times = evs.map(e=>new Date(e.date)).filter(d=>!Number.isNaN(d.getTime()));
+    if(!times.length) return;
+
+    const min = new Date(Math.min(...times.map(d=>d.getTime())));
+    const max = new Date(Math.max(...times.map(d=>d.getTime())));
+    try{
+      const board = await getJson(`${SITE}/scoreboard?dates=${fmtDateKey(min)}-${fmtDateKey(max)}&_=${Date.now()}`);
+      const fresh = new Map((board.events||[]).map(e=>[e.id,e]));
+      rounds[currentRound] = evs.map(e=>fresh.get(e.id)||e);
+      for(const e of rounds[currentRound]) if(stateOf(e)!=="done") matchDetailsCache.delete(e.id);
+      await renderMatches();
+    }catch(_){}
+  }
+
+  async function start(){
+    try{
+      await loadSeason();
+      await renderMatches();
+      setInterval(refreshCurrentRound,REFRESH_MS);
+    }catch(e){
+      showError("Non riesco a collegarmi ai dati di Serie A.");
+      content.innerHTML = `<div class="message">Impossibile caricare la stagione. Riprova tra poco.</div>`;
+    }
+  }
+
+  start();
+})();
+</script>
+</body>
+</html>
