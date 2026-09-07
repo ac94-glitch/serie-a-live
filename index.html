@@ -18,7 +18,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Serie A Live">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="app-version" content="3.2">
+  <meta name="app-version" content="3.2.2">
   <style>
     :root{
       --bg:#f4f6f8;
@@ -730,6 +730,58 @@
       }
     }
 
+    /* Final Dark Mode override for standings readability */
+    @media (prefers-color-scheme:dark){
+      .table-card{
+        background:#121820;
+        border-color:#27313d;
+        box-shadow:0 8px 24px rgba(0,0,0,.22);
+      }
+      .stand-head{
+        background:#0f151d;
+        color:#b9c3d0;
+        border-bottom-color:#2a3440;
+      }
+      .stand-row{
+        background:#121820;
+        border-bottom-color:#2a3440;
+      }
+      .stand-row.zone-champions{
+        background:linear-gradient(0deg, rgba(10,132,255,.18), rgba(10,132,255,.18)), #121820;
+      }
+      .stand-row.zone-europa{
+        background:linear-gradient(0deg, rgba(255,159,10,.17), rgba(255,159,10,.17)), #121820;
+      }
+      .stand-row.zone-conference{
+        background:linear-gradient(0deg, rgba(48,209,88,.15), rgba(48,209,88,.15)), #121820;
+      }
+      .stand-row.zone-relegation{
+        background:linear-gradient(0deg, rgba(255,69,58,.16), rgba(255,69,58,.16)), #121820;
+      }
+      .stand-row.live-team{
+        box-shadow:inset 3px 0 0 #ff6961;
+      }
+      .pos,
+      .num,
+      .pts,
+      .club,
+      .club span{
+        color:#f2f4f7;
+      }
+      .stand-legend{
+        background:#121820;
+        color:#b9c3d0;
+        border-top-color:#2a3440;
+      }
+      .legend-dot.champions{background:#3b82f6}
+      .legend-dot.europa{background:#f59e0b}
+      .legend-dot.conference{background:#22c55e}
+      .legend-dot.relegation{background:#ef4444}
+      .stand-live-note{
+        color:#b9c3d0;
+      }
+    }
+
     @media (prefers-reduced-motion:reduce){
       .match-stat-fill{transition:none}
     }
@@ -1380,6 +1432,111 @@
       }
       .tab.active::before{
         background:rgba(255,255,255,.88);
+      }
+    }
+
+    /* Final Dark Mode override for the floating tab bar.
+       Must come after the normal Liquid Glass definitions. */
+    @media (prefers-color-scheme:dark){
+      .bottom-nav-frost{
+        background:rgba(5,8,12,.42);
+        backdrop-filter:
+          blur(22px)
+          saturate(125%)
+          brightness(72%)
+          contrast(108%);
+        -webkit-backdrop-filter:
+          blur(22px)
+          saturate(125%)
+          brightness(72%)
+          contrast(108%);
+        box-shadow:
+          0 10px 30px rgba(0,0,0,.34);
+      }
+
+      .bottom-nav{
+        background:
+          linear-gradient(
+            180deg,
+            rgba(46,52,61,.76) 0%,
+            rgba(28,33,41,.72) 52%,
+            rgba(20,25,32,.76) 100%
+          );
+        border-color:rgba(255,255,255,.13);
+        backdrop-filter:
+          blur(28px)
+          saturate(145%)
+          brightness(78%)
+          contrast(108%);
+        -webkit-backdrop-filter:
+          blur(28px)
+          saturate(145%)
+          brightness(78%)
+          contrast(108%);
+        box-shadow:
+          0 12px 34px rgba(0,0,0,.42),
+          0 2px 8px rgba(0,0,0,.28),
+          inset 0 1px 0 rgba(255,255,255,.15),
+          inset 0 -1px 0 rgba(255,255,255,.04);
+      }
+
+      .bottom-nav::before{
+        background:
+          linear-gradient(
+            180deg,
+            rgba(255,255,255,.16),
+            rgba(255,255,255,.045) 48%,
+            transparent 100%
+          );
+        opacity:.72;
+      }
+
+      .bottom-nav::after{
+        background:rgba(255,255,255,.018);
+        box-shadow:
+          inset 0 -9px 20px rgba(255,255,255,.025),
+          inset 0 0 0 .5px rgba(255,255,255,.065);
+      }
+
+      .tab{
+        color:rgba(235,238,243,.54);
+      }
+
+      .tab::before{
+        background:
+          linear-gradient(
+            180deg,
+            rgba(72,80,91,.94),
+            rgba(45,52,62,.90)
+          );
+        border-color:rgba(255,255,255,.12);
+        outline-color:rgba(255,255,255,.035);
+        backdrop-filter:blur(18px) saturate(135%) brightness(92%);
+        -webkit-backdrop-filter:blur(18px) saturate(135%) brightness(92%);
+        box-shadow:
+          0 5px 16px rgba(0,0,0,.34),
+          0 1px 4px rgba(0,0,0,.26),
+          inset 0 1px 0 rgba(255,255,255,.13),
+          inset 0 -1px 0 rgba(255,255,255,.025),
+          inset 0 0 0 .5px rgba(255,255,255,.055);
+      }
+
+      .tab.active{
+        color:#0a84ff;
+        text-shadow:none;
+      }
+
+      @supports not ((backdrop-filter:blur(10px)) or (-webkit-backdrop-filter:blur(10px))){
+        .bottom-nav-frost{
+          background:rgba(17,22,28,.96);
+        }
+        .bottom-nav{
+          background:rgba(24,30,38,.98);
+          border-color:rgba(255,255,255,.12);
+        }
+        .tab.active::before{
+          background:rgba(55,63,74,.96);
+        }
       }
     }
 
