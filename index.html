@@ -17,7 +17,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Serie A Live">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="app-version" content="3.5">
+  <meta name="app-version" content="3.5.1">
   <script>
     (() => {
       const key = "serie-a-live-theme";
@@ -368,6 +368,25 @@
       font-weight:400;
       margin-top:1px;
     }
+    .timeline-injury{
+      display:inline-flex;
+      align-items:center;
+      gap:3px;
+      margin-top:2px;
+      color:var(--muted);
+      font-size:10px;
+      line-height:1;
+      font-weight:650;
+      white-space:nowrap;
+    }
+
+    .timeline-injury i{
+      color:#c4322b;
+      font-size:12px;
+      line-height:1;
+      font-weight:400;
+    }
+
     .timeline-sub-arrow{
       display:none;
     }
@@ -562,6 +581,10 @@
     }
 
     html.theme-dark .timeline-event-note.danger{
+      color:#ff817a;
+    }
+
+    html.theme-dark .timeline-injury i{
       color:#ff817a;
     }
 
@@ -3141,6 +3164,12 @@
       return null;
     }
 
+    // Mark injury only when ESPN explicitly states it as the
+    // reason for the substitution.
+    const injury =
+      /\b(?:because of|due to)\s+(?:an?\s+)?injury\b/i.test(txt) ||
+      /\bforced off\s+(?:with|because of|due to)\s+(?:an?\s+)?injury\b/i.test(txt);
+
     const replaceMatch = txt.match(/\sreplaces\s/i);
     if(!replaceMatch) return null;
 
@@ -3200,7 +3229,7 @@
 
     if(!playerIn || !playerOut) return null;
 
-    return {playerIn,playerOut,side};
+    return {playerIn,playerOut,side,injury};
   }
 
   function playSpecialKind(play){
@@ -3361,6 +3390,7 @@
         side,
         playerIn:sub.playerIn,
         playerOut:sub.playerOut,
+        injury:!!sub.injury,
         minute:playMinute(play)
       };
     }
@@ -3438,6 +3468,25 @@
     ].join("|");
   }
 
+  function mergeDuplicateSpecial(existing,incoming){
+    if(!existing) return incoming;
+
+    if(
+      existing.kind === "sub" &&
+      incoming.kind === "sub" &&
+      incoming.injury &&
+      !existing.injury
+    ){
+      return {
+        ...existing,
+        ...incoming,
+        injury:true
+      };
+    }
+
+    return existing;
+  }
+
   function specialEventsFromSummaryDeep(summary, ev, homeId){
     const events = [];
     const seenObjects = new WeakSet();
@@ -3489,7 +3538,13 @@
     walk(summary);
 
     const unique = new Map();
-    events.forEach(e=>unique.set(specialEventKey(e),e));
+    events.forEach(e=>{
+      const key = specialEventKey(e);
+      unique.set(
+        key,
+        mergeDuplicateSpecial(unique.get(key),e)
+      );
+    });
     return [...unique.values()];
   }
 
@@ -3600,7 +3655,13 @@
         }
 
         const unique = new Map();
-        events.forEach(e=>unique.set(specialEventKey(e),e));
+        events.forEach(e=>{
+          const key = specialEventKey(e);
+          unique.set(
+            key,
+            mergeDuplicateSpecial(unique.get(key),e)
+          );
+        });
         return [...unique.values()];
       }catch{
         return [];
@@ -4065,18 +4126,28 @@
       ]);
 
       const combined = [...baseEvents];
-      const seenSpecials = new Set(
-        combined
-          .filter(e=>e.kind !== "goal")
-          .map(specialEventKey)
-      );
+      const specialIndex = new Map();
+
+      combined.forEach((item,index)=>{
+        if(item.kind !== "goal"){
+          specialIndex.set(specialEventKey(item),index);
+        }
+      });
 
       for(const item of [...deepSpecials,...playSpecials]){
         const key = specialEventKey(item);
-        if(!seenSpecials.has(key)){
+        const existingIndex = specialIndex.get(key);
+
+        if(existingIndex === undefined){
+          specialIndex.set(key,combined.length);
           combined.push(item);
-          seenSpecials.add(key);
+          continue;
         }
+
+        combined[existingIndex] = mergeDuplicateSpecial(
+          combined[existingIndex],
+          item
+        );
       }
 
       const advancedEvents = normalizeAdvancedTimeline(combined);
@@ -4295,9 +4366,17 @@
 
   function eventInfoHtml(e){
     if(e.kind === "sub"){
+      const injury = e.injury
+        ? `<span class="timeline-injury">
+            <i class="ph ph-first-aid-kit" aria-hidden="true"></i>
+            Infortunio
+          </span>`
+        : "";
+
       return `
         <div class="timeline-sub-in">${esc(shortPlayerName(e.playerIn))}</div>
         <span class="timeline-sub-out">${esc(shortPlayerName(e.playerOut))}</span>
+        ${injury}
       `;
     }
 
