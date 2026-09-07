@@ -17,7 +17,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Serie A Live">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="app-version" content="3.2.3">
+  <meta name="app-version" content="3.2.4">
   <script>
     (() => {
       const key = "serie-a-live-theme";
@@ -1625,9 +1625,7 @@
   const refreshBtn = document.getElementById("refreshBtn");
 
   const THEME_KEY = "serie-a-live-theme";
-  const UI_STATE_KEY = "serie-a-live-ui-v3";
   let activeTab = "matches";
-  let pendingSavedRound = null;
   let rounds = {};
   let currentRound = 1;
   let selectedRound = 1;
@@ -1773,50 +1771,15 @@
     );
   }
 
-  function saveUiState(){
+  function clearLegacyUiState(){
+    // V3.2 briefly remembered tab and matchday.
+    // From V3.2.4 every fresh app launch always starts on
+    // PARTITE + the current Serie A matchday.
     try{
-      localStorage.setItem(
-        UI_STATE_KEY,
-        JSON.stringify({
-          tab:activeTab,
-          round:Number(selectedRound)
-        })
-      );
+      localStorage.removeItem("serie-a-live-ui-v3");
     }catch(_){}
   }
 
-  function restoreUiState(){
-    try{
-      const saved = JSON.parse(
-        localStorage.getItem(UI_STATE_KEY) || "{}"
-      );
-
-      if(["matches","standings","scorers","assists"].includes(saved?.tab)){
-        activeTab = saved.tab;
-      }
-
-      if(Number.isFinite(Number(saved?.round))){
-        pendingSavedRound = Number(saved.round);
-      }
-    }catch(_){}
-
-    document.querySelectorAll(".tab").forEach(btn=>{
-      btn.classList.toggle(
-        "active",
-        btn.dataset.tab === activeTab
-      );
-    });
-  }
-
-  function applySavedRound(){
-    if(
-      Number.isFinite(pendingSavedRound) &&
-      rounds[pendingSavedRound]
-    ){
-      selectedRound = pendingSavedRound;
-    }
-    pendingSavedRound = null;
-  }
 
   function showError(text){
     errorBox.textContent = text;
@@ -2146,13 +2109,21 @@
         }
       }
 
+      const previousCurrent = currentRound;
       const previousSelected = selectedRound;
+      const wasOnCurrentRound =
+        Number(previousSelected) === Number(previousCurrent);
 
       allEvents = [...merged.values()];
       rounds = groupIntoRounds(allEvents);
       currentRound = detectCurrentRound();
 
-      if(rounds[previousSelected]){
+      // If the app was still on "today", follow ESPN's refined current
+      // round. If the user manually swiped elsewhere, preserve that choice
+      // for the current session only.
+      if(wasOnCurrentRound){
+        selectedRound = currentRound;
+      }else if(rounds[previousSelected]){
         selectedRound = previousSelected;
       }else{
         selectedRound = currentRound;
@@ -4361,8 +4332,6 @@
     if(nextIndex < 0 || nextIndex >= nums.length) return;
 
     selectedRound = nums[nextIndex];
-    saveUiState();
-
     await renderMatches();
     animateRoundEnter(delta);
   }
@@ -4573,7 +4542,6 @@
     document.getElementById("todayBtn")?.addEventListener("click",async()=>{
       const direction = currentRound >= selectedRound ? 1 : -1;
       selectedRound = currentRound;
-      saveUiState();
       await renderMatches();
       animateRoundEnter(direction);
     });
@@ -5167,7 +5135,6 @@ document.querySelectorAll(".tab").forEach(btn=>{
       document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
       btn.classList.add("active");
       activeTab = nextTab;
-      saveUiState();
       renderActive();
       window.scrollTo({top:0,behavior:"smooth"});
     });
@@ -5305,12 +5272,24 @@ document.querySelectorAll(".tab").forEach(btn=>{
     try{
       setupRoundSwipe();
       setupThemeControl();
-      restoreUiState();
-      await loadSeason();
-      applySavedRound();
-      saveUiState();
+      clearLegacyUiState();
 
-      await renderActive();
+      // Every fresh app launch starts from the current matchday.
+      activeTab = "matches";
+      document.querySelectorAll(".tab").forEach(btn=>{
+        btn.classList.toggle(
+          "active",
+          btn.dataset.tab === "matches"
+        );
+      });
+
+      await loadSeason();
+
+      // loadSeason detects the current Serie A round from ESPN.
+      // Explicitly align selectedRound again before first render.
+      selectedRound = currentRound;
+
+      await renderMatches();
       setInterval(refreshCurrentRound,REFRESH_MS);
     }catch(e){
       showError("Non riesco a collegarmi ai dati di Serie A.");
