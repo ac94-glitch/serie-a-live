@@ -17,7 +17,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Serie A Live">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="app-version" content="3.4">
+  <meta name="app-version" content="3.4.1">
   <script>
     (() => {
       const key = "serie-a-live-theme";
@@ -1468,7 +1468,17 @@
 
     /* V3.4 — Team sheet */
     body.team-sheet-open{
+      position:fixed;
+      width:100%;
+      left:0;
+      right:0;
       overflow:hidden;
+      overscroll-behavior:none;
+      touch-action:none;
+    }
+
+    body.team-sheet-open .team-sheet{
+      touch-action:pan-y;
     }
 
     .team-open{
@@ -1503,6 +1513,7 @@
       inset:0;
       z-index:80;
       display:flex;
+      overscroll-behavior:none;
       align-items:flex-end;
       justify-content:center;
       padding:0;
@@ -2203,6 +2214,7 @@
   let seasonHydrationTimer = null;
   let matchesRenderToken = 0;
   let teamSheetRequestToken = 0;
+  let teamSheetScrollY = 0;
 
   const expandedMatchDetails = new Set();
   const matchDetailTabs = new Map();
@@ -5762,7 +5774,17 @@
   function closeTeamSheet(){
     teamSheetRequestToken++;
     teamSheetBackdrop.hidden = true;
+
+    const y = teamSheetScrollY || 0;
+
     document.body.classList.remove("team-sheet-open");
+    document.body.style.top = "";
+    document.body.style.position = "";
+    document.body.style.width = "";
+    document.body.style.left = "";
+    document.body.style.right = "";
+
+    window.scrollTo(0,y);
   }
 
   function teamSheetHeaderHtml(name,logo,meta="Serie A"){
@@ -5800,8 +5822,16 @@
       </div>
     `;
 
-    teamSheetBackdrop.hidden = false;
+    teamSheetScrollY = window.scrollY || window.pageYOffset || 0;
+
     document.body.classList.add("team-sheet-open");
+    document.body.style.top = `-${teamSheetScrollY}px`;
+    document.body.style.position = "fixed";
+    document.body.style.width = "100%";
+    document.body.style.left = "0";
+    document.body.style.right = "0";
+
+    teamSheetBackdrop.hidden = false;
     bindTeamSheetClose();
 
     try{
