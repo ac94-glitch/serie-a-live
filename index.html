@@ -17,7 +17,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Serie A Live">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="app-version" content="3.3.1">
+  <meta name="app-version" content="3.4">
   <script>
     (() => {
       const key = "serie-a-live-theme";
@@ -1465,6 +1465,394 @@
     }
 
 
+
+    /* V3.4 — Team sheet */
+    body.team-sheet-open{
+      overflow:hidden;
+    }
+
+    .team-open{
+      -webkit-tap-highlight-color:transparent;
+    }
+
+    button.team-open{
+      appearance:none;
+      border:0;
+      background:transparent;
+      color:inherit;
+      font:inherit;
+      padding:0;
+      margin:0;
+    }
+
+    .team.team-open{
+      width:100%;
+    }
+
+    .club.team-open{
+      width:100%;
+      text-align:left;
+    }
+
+    .team-open:active{
+      opacity:.66;
+    }
+
+    .team-sheet-backdrop{
+      position:fixed;
+      inset:0;
+      z-index:80;
+      display:flex;
+      align-items:flex-end;
+      justify-content:center;
+      padding:0;
+      background:rgba(16,24,40,.28);
+      backdrop-filter:blur(4px);
+      -webkit-backdrop-filter:blur(4px);
+    }
+
+    .team-sheet-backdrop[hidden]{
+      display:none;
+    }
+
+    .team-sheet{
+      width:min(100%,760px);
+      max-height:min(82vh,720px);
+      overflow:auto;
+      overscroll-behavior:contain;
+      background:var(--card);
+      border:1px solid var(--line);
+      border-bottom:0;
+      border-radius:24px 24px 0 0;
+      box-shadow:0 -18px 48px rgba(16,24,40,.18);
+      padding:
+        10px
+        14px
+        calc(18px + env(safe-area-inset-bottom));
+      animation:teamSheetIn .22s cubic-bezier(.2,.75,.25,1);
+    }
+
+    @keyframes teamSheetIn{
+      from{transform:translateY(22px);opacity:.72}
+      to{transform:translateY(0);opacity:1}
+    }
+
+    .team-sheet-handle{
+      width:38px;
+      height:5px;
+      margin:0 auto 7px;
+      border-radius:999px;
+      background:#d0d5dd;
+    }
+
+    .team-sheet-top{
+      display:grid;
+      grid-template-columns:48px minmax(0,1fr) 36px;
+      gap:11px;
+      align-items:center;
+      min-height:54px;
+      padding:3px 2px 11px;
+    }
+
+    .team-sheet-logo{
+      width:46px;
+      height:46px;
+      object-fit:contain;
+      display:block;
+    }
+
+    .team-sheet-name{
+      min-width:0;
+      font-size:20px;
+      line-height:1.08;
+      font-weight:900;
+      letter-spacing:-.025em;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .team-sheet-meta{
+      margin-top:4px;
+      color:var(--muted);
+      font-size:10.5px;
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:.055em;
+    }
+
+    .team-sheet-close{
+      appearance:none;
+      width:34px;
+      height:34px;
+      display:grid;
+      place-items:center;
+      border:1px solid var(--line);
+      border-radius:11px;
+      background:var(--surface-soft);
+      color:var(--ink);
+      padding:0;
+      -webkit-tap-highlight-color:transparent;
+    }
+
+    .team-sheet-close i{
+      font-size:18px;
+      line-height:1;
+    }
+
+    .team-sheet-close:active{
+      transform:scale(.96);
+    }
+
+    .team-sheet-stats{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:7px;
+      margin-top:1px;
+    }
+
+    .team-sheet-stat{
+      min-width:0;
+      padding:10px 6px 9px;
+      border:1px solid var(--line);
+      border-radius:13px;
+      background:var(--surface-soft);
+      text-align:center;
+    }
+
+    .team-sheet-stat-label{
+      color:var(--muted);
+      font-size:9px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.055em;
+    }
+
+    .team-sheet-stat-value{
+      margin-top:4px;
+      font-size:18px;
+      line-height:1;
+      font-weight:900;
+      font-variant-numeric:tabular-nums;
+    }
+
+    .team-record{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:17px;
+      min-height:34px;
+      margin-top:5px;
+      color:var(--muted);
+      font-size:11px;
+      font-weight:700;
+    }
+
+    .team-record strong{
+      color:var(--ink);
+      font-size:12px;
+      font-weight:900;
+      font-variant-numeric:tabular-nums;
+    }
+
+    .team-sheet-section{
+      padding-top:13px;
+      margin-top:4px;
+      border-top:.5px solid var(--line);
+    }
+
+    .team-sheet-section-title{
+      margin-bottom:9px;
+      color:var(--muted);
+      font-size:10px;
+      font-weight:850;
+      text-transform:uppercase;
+      letter-spacing:.065em;
+    }
+
+    .team-form{
+      display:flex;
+      align-items:center;
+      gap:7px;
+      min-height:30px;
+    }
+
+    .team-form-pill{
+      width:29px;
+      height:29px;
+      display:grid;
+      place-items:center;
+      border-radius:9px;
+      font-size:11px;
+      line-height:1;
+      font-weight:900;
+    }
+
+    .team-form-pill.win{
+      background:#ecfdf3;
+      color:#168447;
+    }
+
+    .team-form-pill.draw{
+      background:#f2f4f7;
+      color:#667085;
+    }
+
+    .team-form-pill.loss{
+      background:#fff0f0;
+      color:#c4322b;
+    }
+
+    .team-form-empty{
+      color:var(--muted);
+      font-size:12px;
+      font-weight:650;
+    }
+
+    .team-fixtures{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:8px;
+    }
+
+    .team-fixture{
+      min-width:0;
+      min-height:105px;
+      padding:10px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:var(--surface-soft);
+    }
+
+    .team-fixture-label{
+      color:var(--muted);
+      font-size:8.75px;
+      font-weight:850;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+    }
+
+    .team-fixture-opponent{
+      display:flex;
+      align-items:center;
+      gap:7px;
+      min-width:0;
+      margin-top:8px;
+    }
+
+    .team-fixture-opponent img{
+      width:25px;
+      height:25px;
+      flex:0 0 25px;
+      object-fit:contain;
+    }
+
+    .team-fixture-opponent span{
+      min-width:0;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      font-size:12px;
+      font-weight:800;
+    }
+
+    .team-fixture-main{
+      margin-top:8px;
+      font-size:14px;
+      font-weight:900;
+      line-height:1.1;
+      font-variant-numeric:tabular-nums;
+    }
+
+    .team-fixture-sub{
+      margin-top:3px;
+      color:var(--muted);
+      font-size:9.75px;
+      font-weight:700;
+      line-height:1.2;
+      text-transform:uppercase;
+      letter-spacing:.035em;
+    }
+
+    .team-top-scorer{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) auto;
+      gap:10px;
+      align-items:center;
+      min-height:43px;
+    }
+
+    .team-top-scorer-name{
+      min-width:0;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      font-size:13px;
+      font-weight:800;
+    }
+
+    .team-top-scorer-value{
+      font-size:17px;
+      font-weight:900;
+      font-variant-numeric:tabular-nums;
+    }
+
+    .team-sheet-loading{
+      min-height:210px;
+      display:grid;
+      place-items:center;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:700;
+    }
+
+    @media (prefers-reduced-motion:reduce){
+      .team-sheet{animation:none}
+    }
+
+    html.theme-dark .team-sheet-backdrop{
+      background:rgba(0,0,0,.46);
+    }
+
+    html.theme-dark .team-sheet{
+      box-shadow:0 -18px 48px rgba(0,0,0,.42);
+    }
+
+    html.theme-dark .team-sheet-handle{
+      background:#475467;
+    }
+
+    html.theme-dark .team-form-pill.win{
+      background:rgba(48,209,88,.15);
+      color:#5dd39e;
+    }
+
+    html.theme-dark .team-form-pill.draw{
+      background:#202832;
+      color:#b9c3d0;
+    }
+
+    html.theme-dark .team-form-pill.loss{
+      background:rgba(255,69,58,.16);
+      color:#ff817a;
+    }
+
+    @media(min-width:650px){
+      .team-sheet-backdrop{
+        align-items:center;
+        padding:18px;
+      }
+
+      .team-sheet{
+        width:min(560px,100%);
+        max-height:min(80vh,720px);
+        border-bottom:1px solid var(--line);
+        border-radius:24px;
+        padding-bottom:18px;
+      }
+    }
+
+
     /* Light/Dark control — same geometry as Refresh */
     .theme-btn i{
       width:19px;
@@ -1739,6 +2127,20 @@
   </main>
 
 
+  <div class="team-sheet-backdrop" id="teamSheetBackdrop" hidden>
+    <section
+      class="team-sheet"
+      id="teamSheet"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="teamSheetTitle"
+    >
+      <div class="team-sheet-handle" aria-hidden="true"></div>
+      <div id="teamSheetContent"></div>
+    </section>
+  </div>
+
+
   <div class="bottom-nav-frost" aria-hidden="true"></div>
 
   <nav class="bottom-nav" aria-label="Navigazione principale">
@@ -1776,6 +2178,9 @@
   const themeBtn = document.getElementById("themeBtn");
   const themeIcon = document.getElementById("themeIcon");
   const refreshBtn = document.getElementById("refreshBtn");
+  const teamSheetBackdrop = document.getElementById("teamSheetBackdrop");
+  const teamSheet = document.getElementById("teamSheet");
+  const teamSheetContent = document.getElementById("teamSheetContent");
 
   const THEME_KEY = "serie-a-live-theme";
   let activeTab = "matches";
@@ -1797,6 +2202,7 @@
   let seasonEndDate = null;
   let seasonHydrationTimer = null;
   let matchesRenderToken = 0;
+  let teamSheetRequestToken = 0;
 
   const expandedMatchDetails = new Set();
   const matchDetailTabs = new Map();
@@ -4374,18 +4780,34 @@
 
     return `<article class="match ${esc(m.status)}" data-match-id="${esc(id)}">
       <div class="match-main">
-        <div class="team">
+        <button
+          class="team team-open"
+          type="button"
+          data-team-open
+          data-team-id="${esc(m.home.id)}"
+          data-team-name="${esc(m.home.name)}"
+          data-team-logo="${esc(m.home.logo || "")}"
+          aria-label="Apri scheda ${esc(m.home.name)}"
+        >
           ${m.home.logo ? `<img src="${esc(m.home.logo)}" alt="" loading="lazy">` : ""}
           <div class="team-name">${esc(m.home.name)}</div>
-        </div>
+        </button>
         <div class="scorebox">
           ${scoreCenter}
           <span class="status ${statusClass}">${esc(m.statusText)}</span>
         </div>
-        <div class="team">
+        <button
+          class="team team-open"
+          type="button"
+          data-team-open
+          data-team-id="${esc(m.away.id)}"
+          data-team-name="${esc(m.away.name)}"
+          data-team-logo="${esc(m.away.logo || "")}"
+          aria-label="Apri scheda ${esc(m.away.name)}"
+        >
           ${m.away.logo ? `<img src="${esc(m.away.logo)}" alt="" loading="lazy">` : ""}
           <div class="team-name">${esc(m.away.name)}</div>
-        </div>
+        </button>
       </div>
       ${details}
       ${toggle}
@@ -4698,6 +5120,8 @@
       await renderMatches();
       animateRoundEnter(direction);
     });
+
+    setupTeamLinks();
 
     content.querySelectorAll("[data-details-toggle]").forEach(btn=>{
       btn.addEventListener("click",()=>{
@@ -5033,10 +5457,18 @@
 
         html += `<div class="stand-row ${zone} ${liveClass}">
           <div class="pos">${esc(pos)}</div>
-          <div class="club">
+          <button
+            class="club team-open"
+            type="button"
+            data-team-open
+            data-team-id="${esc(row.id)}"
+            data-team-name="${esc(team.shortDisplayName||team.displayName||team.name||"—")}"
+            data-team-logo="${esc(logo)}"
+            aria-label="Apri scheda ${esc(team.shortDisplayName||team.displayName||team.name||"—")}"
+          >
             ${logo?`<img src="${esc(logo)}" alt="" loading="lazy">`:""}
             <span>${esc(team.shortDisplayName||team.displayName||team.name||"—")}</span>
-          </div>
+          </button>
           <div class="num">${esc(row.gp)}</div>
           <div class="num">${esc(row.w)}</div>
           <div class="num">${esc(row.d)}</div>
@@ -5051,6 +5483,7 @@
       if(activeTab !== "standings") return;
 
       content.innerHTML = html;
+      setupTeamLinks();
       setUpdated();
     }catch(e){
       if(activeTab !== "standings") return;
@@ -5058,6 +5491,470 @@
       content.innerHTML = `<div class="message">Non riesco a caricare la classifica in questo momento.</div>`;
       showError("Errore nel collegamento ai dati della classifica.");
     }
+  }
+
+  function teamCompetitorId(comp){
+    return String(comp?.id || comp?.team?.id || "");
+  }
+
+  function teamCompetitorForEvent(ev,teamId,teamNameText=""){
+    const competitors = ev?.competitions?.[0]?.competitors || [];
+    const wantedId = String(teamId || "");
+
+    if(wantedId){
+      const byId = competitors.find(
+        c=>teamCompetitorId(c) === wantedId
+      );
+      if(byId) return byId;
+    }
+
+    const wantedName = normalizedTeamText(teamNameText);
+    if(wantedName){
+      return competitors.find(c=>{
+        const names = [
+          c?.team?.shortDisplayName,
+          c?.team?.displayName,
+          c?.team?.name,
+          c?.team?.abbreviation
+        ]
+          .filter(Boolean)
+          .map(normalizedTeamText);
+
+        return names.includes(wantedName);
+      }) || null;
+    }
+
+    return null;
+  }
+
+  function teamEventInfo(ev,teamId,teamNameText=""){
+    const competitors = ev?.competitions?.[0]?.competitors || [];
+    const mine = teamCompetitorForEvent(ev,teamId,teamNameText);
+    if(!mine) return null;
+
+    const opponent = competitors.find(c=>c !== mine) || null;
+    if(!opponent) return null;
+
+    const mineScore = competitorScoreNumber(mine);
+    const opponentScore = competitorScoreNumber(opponent);
+    const state = stateOf(ev);
+
+    let result = "";
+    if(state === "done"){
+      result =
+        mineScore > opponentScore
+          ? "V"
+          : mineScore < opponentScore
+            ? "P"
+            : "N";
+    }
+
+    return {
+      ev,
+      mine,
+      opponent,
+      state,
+      result,
+      mineScore,
+      opponentScore,
+      opponentName:teamName(opponent),
+      opponentLogo:teamLogo(opponent),
+      venue:mine?.homeAway === "home" ? "Casa" : "Trasferta"
+    };
+  }
+
+  function teamEventsFor(teamId,teamNameText=""){
+    return allEvents
+      .map(ev=>teamEventInfo(ev,teamId,teamNameText))
+      .filter(Boolean)
+      .sort((a,b)=>new Date(a.ev.date)-new Date(b.ev.date));
+  }
+
+  function teamFormHtml(teamEvents){
+    const lastFive = teamEvents
+      .filter(x=>x.state === "done")
+      .slice(-5);
+
+    if(!lastFive.length){
+      return `<div class="team-form-empty">Nessun risultato disponibile.</div>`;
+    }
+
+    return `<div class="team-form" aria-label="Forma ultime cinque partite">
+      ${lastFive.map(x=>{
+        const cls =
+          x.result === "V"
+            ? "win"
+            : x.result === "P"
+              ? "loss"
+              : "draw";
+
+        const label =
+          x.result === "V"
+            ? "Vittoria"
+            : x.result === "P"
+              ? "Sconfitta"
+              : "Pareggio";
+
+        return `<span
+          class="team-form-pill ${cls}"
+          title="${label}"
+          aria-label="${label}"
+        >${x.result}</span>`;
+      }).join("")}
+    </div>`;
+  }
+
+  function teamFixtureDate(iso){
+    const d = new Date(iso);
+    return d.toLocaleDateString("it-IT",{
+      weekday:"short",
+      day:"numeric",
+      month:"short"
+    });
+  }
+
+  function teamFixtureHtml(label,item,isNext=false){
+    if(!item){
+      return `<div class="team-fixture">
+        <div class="team-fixture-label">${esc(label)}</div>
+        <div class="team-fixture-sub" style="margin-top:12px">Non disponibile</div>
+      </div>`;
+    }
+
+    const opponentLogo = item.opponentLogo
+      ? `<img src="${esc(item.opponentLogo)}" alt="" loading="lazy">`
+      : "";
+
+    const main = isNext
+      ? esc(timeLabel(item.ev.date))
+      : `${esc(item.mineScore)}–${esc(item.opponentScore)}`;
+
+    const sub = isNext
+      ? `${esc(teamFixtureDate(item.ev.date))} · ${esc(item.venue)}`
+      : `${esc(teamFixtureDate(item.ev.date))} · ${esc(item.venue)}`;
+
+    return `<div class="team-fixture">
+      <div class="team-fixture-label">${esc(label)}</div>
+      <div class="team-fixture-opponent">
+        ${opponentLogo}
+        <span>${esc(item.opponentName)}</span>
+      </div>
+      <div class="team-fixture-main">${main}</div>
+      <div class="team-fixture-sub">${sub}</div>
+    </div>`;
+  }
+
+  function teamTopScorer(teamId,teamNameText=""){
+    const totals = new Map();
+    const wantedId = String(teamId || "");
+    const wantedName = normalizedTeamText(teamNameText);
+
+    for(const ev of allEvents){
+      if(stateOf(ev) === "pre") continue;
+
+      const details = ev?.competitions?.[0]?.details || [];
+
+      for(const d of details){
+        if(!d?.scoringPlay || d?.shootout || d?.ownGoal) continue;
+
+        const raw = d.athletesInvolved || d.participants || [];
+        const athletes = raw.map(x=>x?.athlete || x).filter(Boolean);
+        const scorer = athletes[0];
+        if(!scorer) continue;
+
+        const scoreTeamId = String(
+          d?.team?.id ||
+          scorer?.team?.id ||
+          ""
+        );
+
+        const scoreTeamName = normalizedTeamText(
+          eventTeamName(ev,scoreTeamId)
+        );
+
+        const sameTeam =
+          (wantedId && scoreTeamId === wantedId) ||
+          (!wantedId && wantedName && scoreTeamName === wantedName);
+
+        if(!sameTeam) continue;
+
+        const id =
+          scorer.id ||
+          scorer.uid ||
+          scorer.displayName ||
+          scorer.fullName ||
+          scorer.shortName;
+
+        const name =
+          scorer.displayName ||
+          scorer.fullName ||
+          scorer.shortName ||
+          "—";
+
+        const key = String(id || name);
+        const row = totals.get(key) || {name,value:0};
+        row.value += 1;
+        totals.set(key,row);
+      }
+    }
+
+    return [...totals.values()]
+      .sort((a,b)=>
+        b.value-a.value ||
+        a.name.localeCompare(b.name,"it")
+      )[0] || null;
+  }
+
+  async function teamStandingContext(teamId,teamNameText=""){
+    if(!standingsCache){
+      standingsCache = await getJson(
+        `${STANDINGS}?season=${seasonYear}&_=${Date.now()}`
+      );
+      standingsBaseFetchedAt = Date.now();
+    }
+
+    const entries = standingsEntriesFromPayload(standingsCache);
+    if(!entries.length) return {row:null,position:null,isLive:false};
+
+    const liveEvents = liveSerieAEvents();
+    const isLive = liveEvents.length > 0;
+
+    let rows = normalizedStandingRows(entries);
+
+    if(isLive){
+      rows = applyLiveResultsToStandings(rows,liveEvents);
+    }else{
+      rows.sort((a,b)=>
+        a.baseRank-b.baseRank ||
+        b.pts-a.pts
+      );
+    }
+
+    const wantedId = String(teamId || "");
+    const wantedName = normalizedTeamText(teamNameText);
+
+    const index = rows.findIndex(row=>{
+      if(wantedId && String(row.id) === wantedId) return true;
+
+      const names = [
+        row?.team?.shortDisplayName,
+        row?.team?.displayName,
+        row?.team?.name,
+        row?.team?.abbreviation
+      ]
+        .filter(Boolean)
+        .map(normalizedTeamText);
+
+      return !!wantedName && names.includes(wantedName);
+    });
+
+    if(index < 0) return {row:null,position:null,isLive};
+
+    const row = rows[index];
+
+    return {
+      row,
+      position:isLive ? index+1 : (row.baseRank || index+1),
+      isLive
+    };
+  }
+
+  function closeTeamSheet(){
+    teamSheetRequestToken++;
+    teamSheetBackdrop.hidden = true;
+    document.body.classList.remove("team-sheet-open");
+  }
+
+  function teamSheetHeaderHtml(name,logo,meta="Serie A"){
+    return `<div class="team-sheet-top">
+      ${logo
+        ? `<img class="team-sheet-logo" src="${esc(logo)}" alt="" loading="lazy">`
+        : `<span class="team-sheet-logo" aria-hidden="true"></span>`
+      }
+
+      <div>
+        <div class="team-sheet-name" id="teamSheetTitle">${esc(name || "Squadra")}</div>
+        <div class="team-sheet-meta">${esc(meta)}</div>
+      </div>
+
+      <button class="team-sheet-close" id="teamSheetClose" type="button" aria-label="Chiudi scheda squadra">
+        <i class="ph ph-x" aria-hidden="true"></i>
+      </button>
+    </div>`;
+  }
+
+  function bindTeamSheetClose(){
+    document.getElementById("teamSheetClose")?.addEventListener(
+      "click",
+      closeTeamSheet
+    );
+  }
+
+  async function openTeamSheet({id="",name="",logo=""}={}){
+    const token = ++teamSheetRequestToken;
+
+    teamSheetContent.innerHTML = `
+      ${teamSheetHeaderHtml(name,logo)}
+      <div class="team-sheet-loading">
+        <div><div class="spinner"></div>Carico la squadra…</div>
+      </div>
+    `;
+
+    teamSheetBackdrop.hidden = false;
+    document.body.classList.add("team-sheet-open");
+    bindTeamSheetClose();
+
+    try{
+      // Full-season data is loaded only when the user explicitly opens
+      // a team sheet. Startup stays lightweight.
+      await ensureSeasonCalendar();
+
+      const [standing] = await Promise.all([
+        teamStandingContext(id,name)
+      ]);
+
+      if(token !== teamSheetRequestToken) return;
+
+      const row = standing.row;
+      const team = row?.team || {};
+      const resolvedName =
+        team?.displayName ||
+        team?.shortDisplayName ||
+        team?.name ||
+        name ||
+        "Squadra";
+
+      const resolvedLogo =
+        team?.logos?.[0]?.href ||
+        team?.logo ||
+        logo ||
+        leaderTeamLogo(resolvedName);
+
+      const teamEvents = teamEventsFor(
+        row?.id || id,
+        resolvedName
+      );
+
+      const completed = teamEvents.filter(x=>x.state === "done");
+      const upcoming = teamEvents.filter(x=>x.state === "pre");
+
+      const lastMatch = completed.at(-1) || null;
+      const nextMatch = upcoming.find(
+        x=>new Date(x.ev.date).getTime() >= Date.now() - 2*60*60*1000
+      ) || upcoming[0] || null;
+
+      const scorer = teamTopScorer(
+        row?.id || id,
+        resolvedName
+      );
+
+      const gd = row
+        ? (Number(row.gd) > 0 ? `+${row.gd}` : String(row.gd))
+        : "—";
+
+      const position = standing.position
+        ? `${standing.position}°`
+        : "—";
+
+      const liveMeta = standing.isLive
+        ? "Serie A · Classifica LIVE"
+        : "Serie A";
+
+      teamSheetContent.innerHTML = `
+        ${teamSheetHeaderHtml(resolvedName,resolvedLogo,liveMeta)}
+
+        <div class="team-sheet-stats">
+          <div class="team-sheet-stat">
+            <div class="team-sheet-stat-label">Pos.</div>
+            <div class="team-sheet-stat-value">${esc(position)}</div>
+          </div>
+          <div class="team-sheet-stat">
+            <div class="team-sheet-stat-label">PT</div>
+            <div class="team-sheet-stat-value">${esc(row?.pts ?? "—")}</div>
+          </div>
+          <div class="team-sheet-stat">
+            <div class="team-sheet-stat-label">PG</div>
+            <div class="team-sheet-stat-value">${esc(row?.gp ?? "—")}</div>
+          </div>
+          <div class="team-sheet-stat">
+            <div class="team-sheet-stat-label">DR</div>
+            <div class="team-sheet-stat-value">${esc(gd)}</div>
+          </div>
+        </div>
+
+        <div class="team-record">
+          <span>V <strong>${esc(row?.w ?? "—")}</strong></span>
+          <span>N <strong>${esc(row?.d ?? "—")}</strong></span>
+          <span>P <strong>${esc(row?.l ?? "—")}</strong></span>
+        </div>
+
+        <div class="team-sheet-section">
+          <div class="team-sheet-section-title">Forma ultime 5</div>
+          ${teamFormHtml(teamEvents)}
+        </div>
+
+        <div class="team-sheet-section">
+          <div class="team-fixtures">
+            ${teamFixtureHtml("Ultima partita",lastMatch,false)}
+            ${teamFixtureHtml("Prossima partita",nextMatch,true)}
+          </div>
+        </div>
+
+        <div class="team-sheet-section">
+          <div class="team-sheet-section-title">Miglior marcatore</div>
+          ${scorer
+            ? `<div class="team-top-scorer">
+                <div class="team-top-scorer-name">${esc(scorer.name)}</div>
+                <div class="team-top-scorer-value">${esc(scorer.value)}</div>
+              </div>`
+            : `<div class="team-form-empty">Dato non disponibile.</div>`
+          }
+        </div>
+      `;
+
+      bindTeamSheetClose();
+    }catch(_){
+      if(token !== teamSheetRequestToken) return;
+
+      teamSheetContent.innerHTML = `
+        ${teamSheetHeaderHtml(name,logo)}
+        <div class="message">Scheda squadra non disponibile in questo momento.</div>
+      `;
+
+      bindTeamSheetClose();
+    }
+  }
+
+  function setupTeamLinks(){
+    content.querySelectorAll("[data-team-open]").forEach(btn=>{
+      btn.addEventListener("click",event=>{
+        event.stopPropagation();
+
+        openTeamSheet({
+          id:String(btn.dataset.teamId || ""),
+          name:String(btn.dataset.teamName || ""),
+          logo:String(btn.dataset.teamLogo || "")
+        });
+      });
+    });
+  }
+
+  function setupTeamSheet(){
+    teamSheetBackdrop?.addEventListener("click",event=>{
+      if(event.target === teamSheetBackdrop){
+        closeTeamSheet();
+      }
+    });
+
+    teamSheet?.addEventListener("click",event=>{
+      event.stopPropagation();
+    });
+
+    document.addEventListener("keydown",event=>{
+      if(event.key === "Escape" && !teamSheetBackdrop.hidden){
+        closeTeamSheet();
+      }
+    });
   }
 
   function eventTeamName(ev, teamId){
@@ -5456,6 +6353,7 @@ document.querySelectorAll(".tab").forEach(btn=>{
     try{
       setupRoundSwipe();
       setupThemeControl();
+      setupTeamSheet();
       clearLegacyUiState();
 
       // Every fresh app launch starts from the current matchday.
