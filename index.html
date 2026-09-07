@@ -16,7 +16,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Serie A Live">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="app-version" content="3.0">
+  <meta name="app-version" content="3.1">
   <style>
     :root{
       --bg:#f4f6f8;
@@ -727,6 +727,44 @@
       font-size:20px;
       letter-spacing:-.025em;
     }
+    .stand-title-wrap{
+      margin:2px 4px 12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .stand-title-wrap .section-title{
+      margin:0;
+    }
+    .stand-live-badge{
+      display:inline-flex;
+      align-items:center;
+      gap:5px;
+      flex:0 0 auto;
+      padding:4px 7px;
+      border-radius:999px;
+      background:#fee4e2;
+      color:#b42318;
+      font-size:9.5px;
+      font-weight:850;
+      letter-spacing:.035em;
+      line-height:1;
+    }
+    .stand-live-dot{
+      width:6px;
+      height:6px;
+      border-radius:50%;
+      background:#d92d20;
+      display:inline-block;
+      flex:0 0 auto;
+    }
+    .stand-live-note{
+      margin:-4px 4px 10px;
+      color:var(--muted);
+      font-size:10.5px;
+      line-height:1.25;
+    }
     .table-card{
       background:var(--card);
       border:1px solid var(--line);
@@ -753,6 +791,10 @@
     .stand-row{
       min-height:47px;
       border-bottom:1px solid rgba(228,231,236,.82);
+      position:relative;
+    }
+    .stand-row.live-team{
+      box-shadow:inset 3px 0 0 #d92d20;
     }
     .stand-row.zone-champions{background:#eaf3ff}
     .stand-row.zone-europa{background:#fff3e6}
@@ -1183,6 +1225,7 @@
   let matchDetailsCache = new Map();
   let summaryCache = new Map();
   let standingsCache = null;
+  let standingsBaseFetchedAt = 0;
   let leadersCache = { scorers:null, assists:null };
   let cardPlaysCache = new Map();
   let seasonCalendarLoaded = false;
@@ -3967,9 +4010,214 @@ function showError(text){
     return "";
   }
 
-  async function renderStandings(){
+  function numericStandingStat(entry,names){
+    const value = Number(stat(entry,names));
+    return Number.isFinite(value) ? value : 0;
+  }
+
+  function standingsEntriesFromPayload(payload){
+    let entries = [];
+
+    const walk = node => {
+      if(!node || typeof node !== "object") return;
+
+      if(
+        Array.isArray(node?.standings?.entries) &&
+        node.standings.entries.length
+      ){
+        entries.push(...node.standings.entries);
+      }
+
+      if(Array.isArray(node.children)){
+        node.children.forEach(walk);
+      }
+    };
+
+    walk(payload);
+
+    const seen = new Set();
+
+    return entries.filter(entry=>{
+      const id = String(entry?.team?.id || "");
+      if(!id || seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+  }
+
+  function liveSerieAEvents(){
+    const seen = new Set();
+    const live = [];
+
+    for(const ev of allEvents){
+      const id = String(ev?.id || "");
+      if(!id || seen.has(id)) continue;
+      if(stateOf(ev) !== "live") continue;
+
+      seen.add(id);
+      live.push(ev);
+    }
+
+    return live.sort(
+      (a,b)=>new Date(a.date)-new Date(b.date)
+    );
+  }
+
+  function competitorScoreNumber(comp){
+    const candidates = [
+      comp?.score,
+      comp?.score?.value,
+      comp?.score?.displayValue
+    ];
+
+    for(const candidate of candidates){
+      const n = Number.parseInt(candidate,10);
+      if(Number.isFinite(n)) return n;
+    }
+
+    return 0;
+  }
+
+  function normalizedStandingRows(entries){
+    return entries.map((entry,index)=>{
+      const team = entry?.team || {};
+      const gf = numericStandingStat(
+        entry,
+        ["pointsFor","goalsFor","goalsScored","GF"]
+      );
+      const ga = numericStandingStat(
+        entry,
+        ["pointsAgainst","goalsAgainst","goalsConceded","GA"]
+      );
+
+      let gd = numericStandingStat(
+        entry,
+        ["pointDifferential","goalDifference","GD"]
+      );
+
+      // If ESPN exposes GF/GA but not GD, calculate it.
+      if(!gd && (gf || ga)){
+        gd = gf - ga;
+      }
+
+      return {
+        entry,
+        team,
+        id:String(team?.id || ""),
+        baseRank:
+          numericStandingStat(entry,["rank"]) ||
+          index + 1,
+        gp:numericStandingStat(entry,["gamesPlayed","GP"]),
+        w:numericStandingStat(entry,["wins","W"]),
+        d:numericStandingStat(entry,["ties","draws","D"]),
+        l:numericStandingStat(entry,["losses","L"]),
+        gf,
+        ga,
+        gd,
+        pts:numericStandingStat(entry,["points","P"]),
+        isLive:false
+      };
+    });
+  }
+
+  function applyLiveResultsToStandings(rows,liveEvents){
+    const byTeam = new Map(
+      rows.map(row=>[row.id,row])
+    );
+
+    for(const ev of liveEvents){
+      const competitors =
+        ev?.competitions?.[0]?.competitors || [];
+
+      const home =
+        competitors.find(c=>c?.homeAway === "home") ||
+        competitors[0];
+
+      const away =
+        competitors.find(c=>c?.homeAway === "away") ||
+        competitors[1];
+
+      if(!home || !away) continue;
+
+      const homeId = String(home?.id || home?.team?.id || "");
+      const awayId = String(away?.id || away?.team?.id || "");
+
+      const homeRow = byTeam.get(homeId);
+      const awayRow = byTeam.get(awayId);
+
+      if(!homeRow || !awayRow) continue;
+
+      const homeGoals = competitorScoreNumber(home);
+      const awayGoals = competitorScoreNumber(away);
+
+      homeRow.gp += 1;
+      awayRow.gp += 1;
+
+      homeRow.gf += homeGoals;
+      homeRow.ga += awayGoals;
+      awayRow.gf += awayGoals;
+      awayRow.ga += homeGoals;
+
+      homeRow.gd = homeRow.gf - homeRow.ga;
+      awayRow.gd = awayRow.gf - awayRow.ga;
+
+      homeRow.isLive = true;
+      awayRow.isLive = true;
+
+      if(homeGoals > awayGoals){
+        homeRow.w += 1;
+        awayRow.l += 1;
+        homeRow.pts += 3;
+      }else if(awayGoals > homeGoals){
+        awayRow.w += 1;
+        homeRow.l += 1;
+        awayRow.pts += 3;
+      }else{
+        homeRow.d += 1;
+        awayRow.d += 1;
+        homeRow.pts += 1;
+        awayRow.pts += 1;
+      }
+    }
+
+    // Live projection. Official Serie A tie-break rules can depend on
+    // head-to-head data; base rank is retained as a final stable fallback.
+    rows.sort((a,b)=>
+      b.pts - a.pts ||
+      b.gd - a.gd ||
+      b.gf - a.gf ||
+      a.baseRank - b.baseRank
+    );
+
+    rows.forEach((row,index)=>{
+      row.liveRank = index + 1;
+    });
+
+    return rows;
+  }
+
+  function roundIsNearKickoff(roundNumber){
+    const now = Date.now();
+
+    return (rounds[roundNumber] || []).some(ev=>{
+      if(stateOf(ev) === "done") return false;
+
+      const kickoff = new Date(ev?.date).getTime();
+      if(!Number.isFinite(kickoff)) return false;
+
+      const deltaMinutes = (kickoff - now) / 60000;
+      return deltaMinutes <= 10 && deltaMinutes >= -210;
+    });
+  }
+
+  async function renderStandings(options={}){
+    const {skipRoundRefresh=false} = options;
+
     clearError();
-    loading("Carico la classifica…");
+
+    if(!skipRoundRefresh){
+      loading("Carico la classifica…");
+    }
 
     const legend = `<div class="stand-legend">
       <span class="legend-item"><span class="legend-dot champions"></span>Champions</span>
@@ -3979,70 +4227,95 @@ function showError(text){
     </div>`;
 
     try{
-      if(!standingsCache){
-        standingsCache = await getJson(`${STANDINGS}?season=${seasonYear}&_=${Date.now()}`);
+      // When the user opens CLASSIFICA, first refresh the current round.
+      // This gives the projection the freshest live score available.
+      if(!skipRoundRefresh && rounds[currentRound]?.length){
+        await refreshRoundFromEspn(currentRound).catch(()=>{});
       }
 
-      let entries = [];
-      const walk = node => {
-        if(!node || typeof node !== "object") return;
-        if(Array.isArray(node?.standings?.entries) && node.standings.entries.length){
-          entries.push(...node.standings.entries);
-        }
-        if(Array.isArray(node.children)) node.children.forEach(walk);
-      };
-      walk(standingsCache);
+      if(!standingsCache){
+        standingsCache = await getJson(
+          `${STANDINGS}?season=${seasonYear}&_=${Date.now()}`
+        );
+        standingsBaseFetchedAt = Date.now();
+      }
 
-      const seen = new Set();
-      entries = entries.filter(e=>{
-        const id = e?.team?.id;
-        if(!id || seen.has(id)) return false;
-        seen.add(id);
-        return true;
-      });
-
-      entries.sort((a,b)=>
-        Number(stat(a,["rank"])) - Number(stat(b,["rank"])) ||
-        Number(stat(b,["points","P"])) - Number(stat(a,["points","P"]))
-      );
-
+      const entries = standingsEntriesFromPayload(standingsCache);
       if(!entries.length) throw new Error("Classifica vuota");
 
-      let html = `<h2 class="section-title">Classifica</h2>
+      const liveEvents = liveSerieAEvents();
+      const isLiveProjection = liveEvents.length > 0;
+
+      let rows = normalizedStandingRows(entries);
+
+      if(isLiveProjection){
+        rows = applyLiveResultsToStandings(rows,liveEvents);
+      }else{
+        rows.sort((a,b)=>
+          a.baseRank - b.baseRank ||
+          b.pts - a.pts
+        );
+
+        rows.forEach((row,index)=>{
+          row.liveRank = row.baseRank || index + 1;
+        });
+      }
+
+      const title = isLiveProjection
+        ? `<div class="stand-title-wrap">
+            <h2 class="section-title">Classifica</h2>
+            <span class="stand-live-badge">
+              <span class="stand-live-dot"></span>LIVE
+            </span>
+          </div>
+          <div class="stand-live-note">Proiezione sui risultati delle partite in corso</div>`
+        : `<h2 class="section-title">Classifica</h2>`;
+
+      let html = `${title}
       <div class="table-card">
         <div class="stand-head">
           <div>#</div><div>Squadra</div><div>PG</div><div>V</div><div>N</div><div>P</div><div>DR</div><div>PT</div>
         </div>`;
 
-      entries.forEach((e,i)=>{
-        const team = e.team || {};
+      rows.forEach((row,index)=>{
+        const team = row.team || {};
         const logo = team.logos?.[0]?.href || team.logo || "";
-        const pos = Number(stat(e,["rank"])) || i+1;
-        const gp = stat(e,["gamesPlayed","GP"]);
-        const w = stat(e,["wins","W"]);
-        const d = stat(e,["ties","draws","D"]);
-        const l = stat(e,["losses","L"]);
-        const gd = stat(e,["pointDifferential","goalDifference","GD"]);
-        const pts = stat(e,["points","P"]);
-        const gdText = Number(gd)>0 ? `+${gd}` : gd;
-        const zone = zoneClass(pos);
+        const pos = isLiveProjection
+          ? index + 1
+          : (row.baseRank || index + 1);
 
-        html += `<div class="stand-row ${zone}">
+        const gdText =
+          Number(row.gd) > 0
+            ? `+${row.gd}`
+            : String(row.gd);
+
+        const zone = zoneClass(pos);
+        const liveClass = row.isLive ? "live-team" : "";
+
+        html += `<div class="stand-row ${zone} ${liveClass}">
           <div class="pos">${esc(pos)}</div>
-          <div class="club">${logo?`<img src="${esc(logo)}" alt="" loading="lazy">`:""}<span>${esc(team.shortDisplayName||team.displayName||team.name||"—")}</span></div>
-          <div class="num">${esc(gp)}</div>
-          <div class="num">${esc(w)}</div>
-          <div class="num">${esc(d)}</div>
-          <div class="num">${esc(l)}</div>
+          <div class="club">
+            ${logo?`<img src="${esc(logo)}" alt="" loading="lazy">`:""}
+            <span>${esc(team.shortDisplayName||team.displayName||team.name||"—")}</span>
+          </div>
+          <div class="num">${esc(row.gp)}</div>
+          <div class="num">${esc(row.w)}</div>
+          <div class="num">${esc(row.d)}</div>
+          <div class="num">${esc(row.l)}</div>
           <div class="num">${esc(gdText)}</div>
-          <div class="num pts">${esc(pts)}</div>
+          <div class="num pts">${esc(row.pts)}</div>
         </div>`;
       });
 
       html += `${legend}</div>`;
+
+      if(activeTab !== "standings") return;
+
       content.innerHTML = html;
       setUpdated();
     }catch(e){
+      if(activeTab !== "standings") return;
+
       content.innerHTML = `<div class="message">Non riesco a caricare la classifica in questo momento.</div>`;
       showError("Errore nel collegamento ai dati della classifica.");
     }
@@ -4326,6 +4599,7 @@ document.querySelectorAll(".tab").forEach(btn=>{
       summaryCache.clear();
       cardPlaysCache.clear();
       standingsCache = null;
+      standingsBaseFetchedAt = 0;
       leadersCache = {scorers:null,assists:null};
 
       for(const roundNumber of roundsToRefresh){
@@ -4352,22 +4626,59 @@ document.querySelectorAll(".tab").forEach(btn=>{
   refreshBtn.addEventListener("click",manualRefresh);
 
   async function refreshCurrentRound(){
-    if(activeTab !== "matches" || selectedRound !== currentRound) return;
+    const watchingMatches =
+      activeTab === "matches" &&
+      selectedRound === currentRound;
+
+    const watchingStandings =
+      activeTab === "standings";
+
+    if(!watchingMatches && !watchingStandings) return;
+
     const evs = rounds[currentRound] || [];
     if(!evs.length) return;
 
+    // On CLASSIFICA we only poll near kickoff / while a match can be live.
+    // Outside that window the official table is static and no network work is needed.
+    if(
+      watchingStandings &&
+      !liveSerieAEvents().length &&
+      !roundIsNearKickoff(currentRound)
+    ){
+      return;
+    }
+
     try{
+      const hadLive = liveSerieAEvents().length > 0;
+
       await refreshRoundFromEspn(currentRound);
 
-      for(const e of rounds[currentRound] || []){
-        if(stateOf(e)!=="done"){
-          matchDetailsCache.delete(e.id);
-          summaryCache.delete(e.id);
-          cardPlaysCache.delete(String(e.id));
+      const hasLive = liveSerieAEvents().length > 0;
+
+      if(watchingMatches){
+        for(const e of rounds[currentRound] || []){
+          if(stateOf(e)!=="done"){
+            matchDetailsCache.delete(e.id);
+            summaryCache.delete(e.id);
+            cardPlaysCache.delete(String(e.id));
+          }
         }
+
+        await renderMatches();
+        return;
       }
 
-      await renderMatches();
+      // While games are live, keep the official pre-match standings as
+      // the stable base and only update the projected live score.
+      //
+      // As soon as the last live match finishes, force one fresh official
+      // standings fetch so the projection disappears cleanly.
+      if(hadLive && !hasLive){
+        standingsCache = null;
+        standingsBaseFetchedAt = 0;
+      }
+
+      await renderStandings({skipRoundRefresh:true});
     }catch(_){}
   }
 
