@@ -17,7 +17,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Serie A Live">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="app-version" content="3.3">
+  <meta name="app-version" content="3.3.1">
   <script>
     (() => {
       const key = "serie-a-live-theme";
@@ -906,18 +906,25 @@
       font-weight:850;
       text-align:center;
     }
-    .player{min-width:0}
+    .player{
+      min-width:0;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      height:100%;
+    }
+    .player-logo{
+      width:28px;
+      height:28px;
+      flex:0 0 28px;
+      object-fit:contain;
+      display:block;
+    }
     .player-name{
+      min-width:0;
       font-size:14px;
       font-weight:800;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .player-team{
-      margin-top:3px;
-      color:var(--muted);
-      font-size:11.5px;
+      line-height:1.15;
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
@@ -926,6 +933,8 @@
       text-align:center;
       font-size:21px;
       font-weight:900;
+      line-height:1;
+      font-variant-numeric:tabular-nums;
     }
 
     .skeleton-stack{
@@ -5057,6 +5066,32 @@
     return c ? teamName(c) : "—";
   }
 
+  function leaderTeamLogo(team){
+    const wanted = normalizedTeamText(team);
+    if(!wanted || wanted === "—") return "";
+
+    for(const ev of allEvents){
+      const competitors = ev?.competitions?.[0]?.competitors || [];
+
+      for(const competitor of competitors){
+        const names = [
+          competitor?.team?.shortDisplayName,
+          competitor?.team?.displayName,
+          competitor?.team?.name,
+          competitor?.team?.abbreviation
+        ]
+          .filter(Boolean)
+          .map(normalizedTeamText);
+
+        if(names.includes(wanted)){
+          return teamLogo(competitor);
+        }
+      }
+    }
+
+    return "";
+  }
+
   function seasonScorerRows(){
     const totals = new Map();
 
@@ -5246,11 +5281,16 @@
       }
       let html = `<h2 class="section-title">${isGoals ? "Marcatori" : "Assist"}</h2><div class="table-card">`;
       rows.forEach(r=>{
+        const logo = leaderTeamLogo(r.team);
+
         html += `<div class="leader-row">
           <div class="rank">${r.rank}</div>
           <div class="player">
+            ${logo
+              ? `<img class="player-logo" src="${esc(logo)}" alt="" loading="lazy">`
+              : `<span class="player-logo" aria-hidden="true"></span>`
+            }
             <div class="player-name">${esc(r.name)}</div>
-            <div class="player-team">${esc(r.team)}</div>
           </div>
           <div class="leader-value">${esc(r.value)}</div>
         </div>`;
