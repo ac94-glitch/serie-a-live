@@ -3,8 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#f4f6f8" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#0b0f14" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" id="themeColor" content="#f4f6f8">
   <meta name="color-scheme" content="light dark">
   <title>Serie A Live</title>
   <link rel="icon" type="image/png" sizes="32x32" href="seriea-live-v3-32.png">
@@ -18,7 +17,30 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Serie A Live">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="app-version" content="3.2.2">
+  <meta name="app-version" content="3.2.3">
+  <script>
+    (() => {
+      const key = "serie-a-live-theme";
+      let theme = "light";
+
+      try {
+        const saved = localStorage.getItem(key);
+        theme = (saved === "light" || saved === "dark")
+          ? saved
+          : (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      } catch (_) {
+        theme = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      }
+
+      document.documentElement.classList.add(
+        theme === "dark" ? "theme-dark" : "theme-light"
+      );
+      document.documentElement.style.colorScheme = theme;
+
+      const meta = document.getElementById("themeColor");
+      if (meta) meta.content = theme === "dark" ? "#0b0f14" : "#f4f6f8";
+    })();
+  </script>
   <style>
     :root{
       --bg:#f4f6f8;
@@ -595,192 +617,10 @@
       transition:width .18s ease-out;
     }
 
-    @media (prefers-color-scheme:dark){
-      :root{
-        --bg:#0b0f14;
-        --card:#151a21;
-        --ink:#f2f4f7;
-        --muted:#98a2b3;
-        --line:#29313d;
-        --accent:#0a84ff;
-        --accent-soft:#102a43;
-        --live:#ff6961;
-        --green:#5dd39e;
-        --nav:#f2f4f7;
-        --surface-soft:#11161d;
-        --surface-muted:#121820;
-        --skeleton:#27303b;
-        --shadow:0 5px 18px rgba(0,0,0,.18);
-      }
-      .top{
-        background:rgba(11,15,20,.91);
-        border-bottom-color:rgba(41,49,61,.9);
-      }
-      .refresh-btn{
-        background:rgba(30,37,46,.82);
-        border-color:rgba(65,76,91,.82);
-        color:#eaecf0;
-        box-shadow:0 2px 8px rgba(0,0,0,.18);
-      }
-      .updated{
-        background:rgba(30,37,46,.62);
-        border-color:rgba(65,76,91,.68);
-      }
-      .updated::before{background:#667085}
-      .status{background:#202832}
-      .status.live,
-      .stand-live-badge{
-        background:rgba(217,45,32,.16);
-        color:#ff817a;
-      }
-      .status.done{
-        background:rgba(6,118,71,.18);
-        color:#68dba5;
-      }
-      .match.live{border-color:rgba(255,105,97,.42)}
-      .events::before{background:#303947}
-      .event-ph,
-      .event-ph.pen-saved{color:#d0d5dd}
-      .pen-miss-wrap .ph-x{
-        text-shadow:
-          0 0 2px #11161d,
-          0 0 2px #11161d;
-      }
-      .events-toggle:active{background:#1b222c}
-      .detail-tabs{background:var(--card)}
-      .match-stat-row + .match-stat-row{
-        border-top-color:rgba(41,49,61,.86);
-      }
-      .match-stat-half{background:#27303b}
-      .match-stat-fill{
-        box-shadow:inset 0 0 0 .75px rgba(255,255,255,.12);
-      }
-      .stand-row{
-        border-bottom-color:rgba(41,49,61,.88);
-      }
-      .stand-row.zone-champions{background:rgba(10,132,255,.12)}
-      .stand-row.zone-europa{background:rgba(255,159,10,.12)}
-      .stand-row.zone-conference{background:rgba(48,209,88,.11)}
-      .stand-row.zone-relegation{background:rgba(255,69,58,.11)}
-      .stand-legend{background:var(--card)}
-      .error{
-        background:rgba(255,159,10,.13);
-        color:#ffb340;
-      }
-      .bottom-nav-frost{
-        background:rgba(20,24,31,.22);
-        box-shadow:0 9px 28px rgba(0,0,0,.22);
-      }
-      .bottom-nav{
-        background:
-          linear-gradient(
-            180deg,
-            rgba(53,61,72,.54) 0%,
-            rgba(33,40,49,.44) 52%,
-            rgba(24,30,38,.40) 100%
-          );
-        border-color:rgba(255,255,255,.14);
-        box-shadow:
-          0 11px 32px rgba(0,0,0,.34),
-          0 2px 8px rgba(0,0,0,.20),
-          inset 0 1px 0 rgba(255,255,255,.18),
-          inset 0 -1px 0 rgba(255,255,255,.06);
-      }
-      .bottom-nav::before{
-        background:
-          linear-gradient(
-            180deg,
-            rgba(255,255,255,.18),
-            rgba(255,255,255,.05) 44%,
-            transparent 100%
-          );
-        opacity:.66;
-      }
-      .bottom-nav::after{
-        background:rgba(255,255,255,.025);
-        box-shadow:
-          inset 0 -9px 20px rgba(255,255,255,.035),
-          inset 0 0 0 .5px rgba(255,255,255,.08);
-      }
-      .tab{color:rgba(235,238,243,.58)}
-      .tab::before{
-        background:
-          linear-gradient(
-            180deg,
-            rgba(65,75,88,.96),
-            rgba(42,50,61,.88)
-          );
-        border-color:rgba(255,255,255,.13);
-        outline-color:rgba(255,255,255,.04);
-        box-shadow:
-          0 5px 16px rgba(0,0,0,.32),
-          0 1px 4px rgba(0,0,0,.24),
-          inset 0 1px 0 rgba(255,255,255,.16),
-          inset 0 -1px 0 rgba(255,255,255,.035),
-          inset 0 0 0 .5px rgba(255,255,255,.08);
-      }
-      .tab.active{
-        color:#0a84ff;
-        text-shadow:none;
-      }
-      @supports not ((backdrop-filter:blur(10px)) or (-webkit-backdrop-filter:blur(10px))){
-        .bottom-nav-frost{background:rgba(26,32,40,.92)}
-        .bottom-nav{background:rgba(26,32,40,.98)}
-        .tab.active::before{background:rgba(53,62,74,.96)}
-      }
-    }
+    
 
     /* Final Dark Mode override for standings readability */
-    @media (prefers-color-scheme:dark){
-      .table-card{
-        background:#121820;
-        border-color:#27313d;
-        box-shadow:0 8px 24px rgba(0,0,0,.22);
-      }
-      .stand-head{
-        background:#0f151d;
-        color:#b9c3d0;
-        border-bottom-color:#2a3440;
-      }
-      .stand-row{
-        background:#121820;
-        border-bottom-color:#2a3440;
-      }
-      .stand-row.zone-champions{
-        background:linear-gradient(0deg, rgba(10,132,255,.18), rgba(10,132,255,.18)), #121820;
-      }
-      .stand-row.zone-europa{
-        background:linear-gradient(0deg, rgba(255,159,10,.17), rgba(255,159,10,.17)), #121820;
-      }
-      .stand-row.zone-conference{
-        background:linear-gradient(0deg, rgba(48,209,88,.15), rgba(48,209,88,.15)), #121820;
-      }
-      .stand-row.zone-relegation{
-        background:linear-gradient(0deg, rgba(255,69,58,.16), rgba(255,69,58,.16)), #121820;
-      }
-      .stand-row.live-team{
-        box-shadow:inset 3px 0 0 #ff6961;
-      }
-      .pos,
-      .num,
-      .pts,
-      .club,
-      .club span{
-        color:#f2f4f7;
-      }
-      .stand-legend{
-        background:#121820;
-        color:#b9c3d0;
-        border-top-color:#2a3440;
-      }
-      .legend-dot.champions{background:#3b82f6}
-      .legend-dot.europa{background:#f59e0b}
-      .legend-dot.conference{background:#22c55e}
-      .legend-dot.relegation{background:#ef4444}
-      .stand-live-note{
-        color:#b9c3d0;
-      }
-    }
+    
 
     @media (prefers-reduced-motion:reduce){
       .match-stat-fill{transition:none}
@@ -1437,108 +1277,7 @@
 
     /* Final Dark Mode override for the floating tab bar.
        Must come after the normal Liquid Glass definitions. */
-    @media (prefers-color-scheme:dark){
-      .bottom-nav-frost{
-        background:rgba(5,8,12,.42);
-        backdrop-filter:
-          blur(22px)
-          saturate(125%)
-          brightness(72%)
-          contrast(108%);
-        -webkit-backdrop-filter:
-          blur(22px)
-          saturate(125%)
-          brightness(72%)
-          contrast(108%);
-        box-shadow:
-          0 10px 30px rgba(0,0,0,.34);
-      }
-
-      .bottom-nav{
-        background:
-          linear-gradient(
-            180deg,
-            rgba(46,52,61,.76) 0%,
-            rgba(28,33,41,.72) 52%,
-            rgba(20,25,32,.76) 100%
-          );
-        border-color:rgba(255,255,255,.13);
-        backdrop-filter:
-          blur(28px)
-          saturate(145%)
-          brightness(78%)
-          contrast(108%);
-        -webkit-backdrop-filter:
-          blur(28px)
-          saturate(145%)
-          brightness(78%)
-          contrast(108%);
-        box-shadow:
-          0 12px 34px rgba(0,0,0,.42),
-          0 2px 8px rgba(0,0,0,.28),
-          inset 0 1px 0 rgba(255,255,255,.15),
-          inset 0 -1px 0 rgba(255,255,255,.04);
-      }
-
-      .bottom-nav::before{
-        background:
-          linear-gradient(
-            180deg,
-            rgba(255,255,255,.16),
-            rgba(255,255,255,.045) 48%,
-            transparent 100%
-          );
-        opacity:.72;
-      }
-
-      .bottom-nav::after{
-        background:rgba(255,255,255,.018);
-        box-shadow:
-          inset 0 -9px 20px rgba(255,255,255,.025),
-          inset 0 0 0 .5px rgba(255,255,255,.065);
-      }
-
-      .tab{
-        color:rgba(235,238,243,.54);
-      }
-
-      .tab::before{
-        background:
-          linear-gradient(
-            180deg,
-            rgba(72,80,91,.94),
-            rgba(45,52,62,.90)
-          );
-        border-color:rgba(255,255,255,.12);
-        outline-color:rgba(255,255,255,.035);
-        backdrop-filter:blur(18px) saturate(135%) brightness(92%);
-        -webkit-backdrop-filter:blur(18px) saturate(135%) brightness(92%);
-        box-shadow:
-          0 5px 16px rgba(0,0,0,.34),
-          0 1px 4px rgba(0,0,0,.26),
-          inset 0 1px 0 rgba(255,255,255,.13),
-          inset 0 -1px 0 rgba(255,255,255,.025),
-          inset 0 0 0 .5px rgba(255,255,255,.055);
-      }
-
-      .tab.active{
-        color:#0a84ff;
-        text-shadow:none;
-      }
-
-      @supports not ((backdrop-filter:blur(10px)) or (-webkit-backdrop-filter:blur(10px))){
-        .bottom-nav-frost{
-          background:rgba(17,22,28,.96);
-        }
-        .bottom-nav{
-          background:rgba(24,30,38,.98);
-          border-color:rgba(255,255,255,.12);
-        }
-        .tab.active::before{
-          background:rgba(55,63,74,.96);
-        }
-      }
-    }
+    
 
     @media (prefers-reduced-motion:reduce){
       #content.round-swipe-feedback-left,
@@ -1571,7 +1310,249 @@
       }
       .stand-head{font-size:10px}
     }
-  </style>
+
+
+    /* Light/Dark control — same geometry as Refresh */
+    .theme-btn i{
+      width:19px;
+      height:19px;
+      display:grid;
+      place-items:center;
+      font-size:19px;
+      line-height:19px;
+      font-weight:400;
+    }
+
+    /* Manual Dark Mode.
+       This block is intentionally LAST so no light rule can override it. */
+    html.theme-dark{
+      --bg:#0b0f14;
+      --card:#151a21;
+      --ink:#f2f4f7;
+      --muted:#98a2b3;
+      --line:#29313d;
+      --accent:#0a84ff;
+      --accent-soft:#102a43;
+      --live:#ff6961;
+      --green:#5dd39e;
+      --nav:#f2f4f7;
+      --surface-soft:#11161d;
+      --surface-muted:#121820;
+      --skeleton:#27303b;
+      --shadow:0 5px 18px rgba(0,0,0,.18);
+    }
+
+    html.theme-dark body{
+      background:var(--bg);
+      color:var(--ink);
+    }
+
+    html.theme-dark .top{
+      background:rgba(11,15,20,.91);
+      border-bottom-color:rgba(41,49,61,.9);
+    }
+
+    html.theme-dark .refresh-btn{
+      background:rgba(30,37,46,.82);
+      border-color:rgba(65,76,91,.82);
+      color:#eaecf0;
+      box-shadow:0 2px 8px rgba(0,0,0,.18);
+    }
+
+    html.theme-dark .updated{
+      background:rgba(30,37,46,.62);
+      border-color:rgba(65,76,91,.68);
+    }
+    html.theme-dark .updated::before{background:#667085}
+
+    html.theme-dark .status{background:#202832}
+    html.theme-dark .status.live,
+    html.theme-dark .stand-live-badge{
+      background:rgba(217,45,32,.16);
+      color:#ff817a;
+    }
+    html.theme-dark .status.done{
+      background:rgba(6,118,71,.18);
+      color:#68dba5;
+    }
+
+    html.theme-dark .match.live{
+      border-color:rgba(255,105,97,.42);
+    }
+
+    html.theme-dark .events::before{background:#303947}
+    html.theme-dark .event-ph,
+    html.theme-dark .event-ph.pen-saved{color:#d0d5dd}
+    html.theme-dark .pen-miss-wrap .ph-x{
+      text-shadow:
+        0 0 2px #11161d,
+        0 0 2px #11161d;
+    }
+    html.theme-dark .events-toggle:active{background:#1b222c}
+    html.theme-dark .detail-tabs{background:var(--card)}
+    html.theme-dark .match-stat-row + .match-stat-row{
+      border-top-color:rgba(41,49,61,.86);
+    }
+    html.theme-dark .match-stat-half{background:#27303b}
+    html.theme-dark .match-stat-fill{
+      box-shadow:inset 0 0 0 .75px rgba(255,255,255,.12);
+    }
+
+    /* Standings — high contrast dark version */
+    html.theme-dark .table-card{
+      background:#121820;
+      border-color:#27313d;
+      box-shadow:0 8px 24px rgba(0,0,0,.22);
+    }
+    html.theme-dark .stand-head{
+      background:#0f151d;
+      color:#b9c3d0;
+      border-bottom-color:#2a3440;
+    }
+    html.theme-dark .stand-row{
+      background:#121820;
+      border-bottom-color:#2a3440;
+    }
+    html.theme-dark .stand-row.zone-champions{
+      background:linear-gradient(0deg,rgba(10,132,255,.18),rgba(10,132,255,.18)),#121820;
+    }
+    html.theme-dark .stand-row.zone-europa{
+      background:linear-gradient(0deg,rgba(255,159,10,.17),rgba(255,159,10,.17)),#121820;
+    }
+    html.theme-dark .stand-row.zone-conference{
+      background:linear-gradient(0deg,rgba(48,209,88,.15),rgba(48,209,88,.15)),#121820;
+    }
+    html.theme-dark .stand-row.zone-relegation{
+      background:linear-gradient(0deg,rgba(255,69,58,.16),rgba(255,69,58,.16)),#121820;
+    }
+    html.theme-dark .stand-row.live-team{
+      box-shadow:inset 3px 0 0 #ff6961;
+    }
+    html.theme-dark .pos,
+    html.theme-dark .num,
+    html.theme-dark .pts,
+    html.theme-dark .club,
+    html.theme-dark .club span{
+      color:#f2f4f7;
+    }
+    html.theme-dark .stand-legend{
+      background:#121820;
+      color:#b9c3d0;
+      border-top-color:#2a3440;
+    }
+    html.theme-dark .legend-dot.champions{background:#3b82f6}
+    html.theme-dark .legend-dot.europa{background:#f59e0b}
+    html.theme-dark .legend-dot.conference{background:#22c55e}
+    html.theme-dark .legend-dot.relegation{background:#ef4444}
+    html.theme-dark .stand-live-note{color:#b9c3d0}
+
+    html.theme-dark .error{
+      background:rgba(255,159,10,.13);
+      color:#ffb340;
+    }
+
+    /* True dark Liquid Glass bottom bar */
+    html.theme-dark .bottom-nav-frost{
+      background:rgba(5,8,12,.42);
+      backdrop-filter:
+        blur(22px)
+        saturate(125%)
+        brightness(72%)
+        contrast(108%);
+      -webkit-backdrop-filter:
+        blur(22px)
+        saturate(125%)
+        brightness(72%)
+        contrast(108%);
+      box-shadow:0 10px 30px rgba(0,0,0,.34);
+    }
+
+    html.theme-dark .bottom-nav{
+      background:
+        linear-gradient(
+          180deg,
+          rgba(46,52,61,.76) 0%,
+          rgba(28,33,41,.72) 52%,
+          rgba(20,25,32,.76) 100%
+        );
+      border-color:rgba(255,255,255,.13);
+      backdrop-filter:
+        blur(28px)
+        saturate(145%)
+        brightness(78%)
+        contrast(108%);
+      -webkit-backdrop-filter:
+        blur(28px)
+        saturate(145%)
+        brightness(78%)
+        contrast(108%);
+      box-shadow:
+        0 12px 34px rgba(0,0,0,.42),
+        0 2px 8px rgba(0,0,0,.28),
+        inset 0 1px 0 rgba(255,255,255,.15),
+        inset 0 -1px 0 rgba(255,255,255,.04);
+    }
+
+    html.theme-dark .bottom-nav::before{
+      background:
+        linear-gradient(
+          180deg,
+          rgba(255,255,255,.16),
+          rgba(255,255,255,.045) 48%,
+          transparent 100%
+        );
+      opacity:.72;
+    }
+
+    html.theme-dark .bottom-nav::after{
+      background:rgba(255,255,255,.018);
+      box-shadow:
+        inset 0 -9px 20px rgba(255,255,255,.025),
+        inset 0 0 0 .5px rgba(255,255,255,.065);
+    }
+
+    html.theme-dark .tab{
+      color:rgba(235,238,243,.54);
+    }
+
+    html.theme-dark .tab::before{
+      background:
+        linear-gradient(
+          180deg,
+          rgba(72,80,91,.94),
+          rgba(45,52,62,.90)
+        );
+      border-color:rgba(255,255,255,.12);
+      outline-color:rgba(255,255,255,.035);
+      backdrop-filter:blur(18px) saturate(135%) brightness(92%);
+      -webkit-backdrop-filter:blur(18px) saturate(135%) brightness(92%);
+      box-shadow:
+        0 5px 16px rgba(0,0,0,.34),
+        0 1px 4px rgba(0,0,0,.26),
+        inset 0 1px 0 rgba(255,255,255,.13),
+        inset 0 -1px 0 rgba(255,255,255,.025),
+        inset 0 0 0 .5px rgba(255,255,255,.055);
+    }
+
+    html.theme-dark .tab.active{
+      color:#0a84ff;
+      text-shadow:none;
+    }
+
+    @supports not ((backdrop-filter:blur(10px)) or (-webkit-backdrop-filter:blur(10px))){
+      html.theme-dark .bottom-nav-frost{
+        background:rgba(17,22,28,.96);
+      }
+      html.theme-dark .bottom-nav{
+        background:rgba(24,30,38,.98);
+        border-color:rgba(255,255,255,.12);
+      }
+      html.theme-dark .tab.active::before{
+        background:rgba(55,63,74,.96);
+      }
+    }
+
+</style>
   <link
     rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css"
@@ -1586,6 +1567,9 @@
       </div>
       <div class="header-actions">
         <div class="updated" id="updated">—</div>
+        <button class="refresh-btn theme-btn" id="themeBtn" type="button" aria-label="Attiva modalità scura" title="Tema">
+          <i class="ph ph-moon" id="themeIcon" aria-hidden="true"></i>
+        </button>
         <button class="refresh-btn" id="refreshBtn" type="button" aria-label="Aggiorna dati" title="Aggiorna">
           <i class="ph ph-arrow-clockwise" aria-hidden="true"></i>
         </button>
@@ -1636,8 +1620,11 @@
   const errorBox = document.getElementById("error");
   const updated = document.getElementById("updated");
   const seasonLabel = document.getElementById("seasonLabel");
+  const themeBtn = document.getElementById("themeBtn");
+  const themeIcon = document.getElementById("themeIcon");
   const refreshBtn = document.getElementById("refreshBtn");
 
+  const THEME_KEY = "serie-a-live-theme";
   const UI_STATE_KEY = "serie-a-live-ui-v3";
   let activeTab = "matches";
   let pendingSavedRound = null;
@@ -1694,6 +1681,90 @@
 
   const two = n => String(n).padStart(2,"0");
   const fmtDateKey = d => `${d.getUTCFullYear()}${two(d.getUTCMonth()+1)}${two(d.getUTCDate())}`;
+
+  function activeTheme(){
+    return document.documentElement.classList.contains("theme-dark")
+      ? "dark"
+      : "light";
+  }
+
+  function savedThemePreference(){
+    try{
+      const value = localStorage.getItem(THEME_KEY);
+      return value === "light" || value === "dark"
+        ? value
+        : null;
+    }catch(_){
+      return null;
+    }
+  }
+
+  function updateThemeButton(){
+    if(!themeBtn || !themeIcon) return;
+
+    const dark = activeTheme() === "dark";
+
+    // Icon shows the ACTION:
+    // moon in Light -> tap for Dark
+    // sun in Dark -> tap for Light
+    themeIcon.className = dark
+      ? "ph ph-sun"
+      : "ph ph-moon";
+
+    const label = dark
+      ? "Attiva modalità chiara"
+      : "Attiva modalità scura";
+
+    themeBtn.setAttribute("aria-label",label);
+    themeBtn.setAttribute("title",label);
+  }
+
+  function applyTheme(theme,{persist=false}={}){
+    const dark = theme === "dark";
+
+    document.documentElement.classList.toggle("theme-dark",dark);
+    document.documentElement.classList.toggle("theme-light",!dark);
+    document.documentElement.style.colorScheme = dark ? "dark" : "light";
+
+    const meta = document.getElementById("themeColor");
+    if(meta){
+      meta.content = dark ? "#0b0f14" : "#f4f6f8";
+    }
+
+    if(persist){
+      try{
+        localStorage.setItem(THEME_KEY,dark ? "dark" : "light");
+      }catch(_){}
+    }
+
+    updateThemeButton();
+  }
+
+  function setupThemeControl(){
+    updateThemeButton();
+
+    themeBtn?.addEventListener("click",()=>{
+      applyTheme(
+        activeTheme() === "dark" ? "light" : "dark",
+        {persist:true}
+      );
+    });
+
+    const systemTheme = matchMedia("(prefers-color-scheme: dark)");
+
+    const followSystem = event=>{
+      // The iPhone theme continues to drive the app only until
+      // the user makes an explicit manual choice.
+      if(savedThemePreference()) return;
+      applyTheme(event.matches ? "dark" : "light");
+    };
+
+    if(systemTheme.addEventListener){
+      systemTheme.addEventListener("change",followSystem);
+    }else if(systemTheme.addListener){
+      systemTheme.addListener(followSystem);
+    }
+  }
 
   function setUpdated(){
     updated.textContent = "Aggiornato " + new Date().toLocaleTimeString(
@@ -5233,6 +5304,7 @@ document.querySelectorAll(".tab").forEach(btn=>{
   async function start(){
     try{
       setupRoundSwipe();
+      setupThemeControl();
       restoreUiState();
       await loadSeason();
       applySavedRound();
