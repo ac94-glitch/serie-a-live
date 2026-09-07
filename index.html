@@ -17,7 +17,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Serie A Live">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="app-version" content="3.4.2">
+  <meta name="app-version" content="3.5">
   <script>
     (() => {
       const key = "serie-a-live-theme";
@@ -482,6 +482,97 @@
         0 0 2px #fff,
         0 0 2px #fff;
     }
+    .timeline-event-note{
+      display:block;
+      margin-top:1px;
+      color:var(--muted);
+      font-size:11px;
+      font-weight:500;
+      line-height:1.2;
+    }
+
+    .timeline-event-note.var{
+      font-weight:750;
+      letter-spacing:.02em;
+    }
+
+    .timeline-event-note.danger{
+      color:#c4322b;
+    }
+
+    .timeline-event-note.success{
+      color:#168447;
+    }
+
+    .event-overlay-wrap{
+      position:relative;
+      width:24px;
+      height:24px;
+      display:grid;
+      place-items:center;
+    }
+
+    .event-overlay-wrap > .event-ph{
+      font-size:21px;
+    }
+
+    .event-overlay-mark{
+      position:absolute;
+      right:-1px;
+      bottom:-1px;
+      width:13px;
+      height:13px;
+      display:grid;
+      place-items:center;
+      border-radius:999px;
+      background:var(--surface-soft);
+      font-size:11px;
+      line-height:1;
+      font-weight:900;
+    }
+
+    .event-overlay-mark.reject{
+      color:#c4322b;
+    }
+
+    .event-overlay-mark.accept{
+      color:#168447;
+    }
+
+    .second-yellow-cards{
+      position:relative;
+      width:22px;
+      height:23px;
+      display:block;
+    }
+
+    .second-yellow-cards .event-card{
+      position:absolute;
+      top:3px;
+    }
+
+    .second-yellow-cards .event-card.yellow{
+      left:2px;
+      transform:rotate(-7deg);
+    }
+
+    .second-yellow-cards .event-card.red{
+      right:2px;
+      transform:rotate(7deg);
+    }
+
+    html.theme-dark .timeline-event-note.danger{
+      color:#ff817a;
+    }
+
+    html.theme-dark .timeline-event-note.success{
+      color:#5dd39e;
+    }
+
+    html.theme-dark .event-overlay-mark{
+      background:var(--surface-soft);
+    }
+
     .minute{color:var(--muted);font-weight:650}
     .empty-events{
       text-align:center;
@@ -2798,9 +2889,33 @@
     setUpdated();
   }
 
+  function normalizeFootballMinute(value){
+    const raw = String(value || "")
+      .trim()
+      .replace(/[’′]/g,"'");
+
+    if(!raw) return "";
+
+    // ESPN commonly exposes stoppage time as 45'+3' or 90'+5'.
+    // Normalize visually to 45+3' / 90+5'.
+    let m = raw.match(/^(\d{1,3})'\s*\+\s*(\d{1,2})'?$/);
+    if(m) return `${Number(m[1])}+${Number(m[2])}'`;
+
+    m = raw.match(/^(\d{1,3})\s*\+\s*(\d{1,2})'?$/);
+    if(m) return `${Number(m[1])}+${Number(m[2])}'`;
+
+    m = raw.match(/^(\d{1,3})'$/);
+    if(m) return `${Number(m[1])}'`;
+
+    m = raw.match(/^(\d{1,3})$/);
+    if(m) return `${Number(m[1])}'`;
+
+    return raw;
+  }
+
   function minuteOf(detail){
     const display = detail?.clock?.displayValue || "";
-    return display || "";
+    return normalizeFootballMinute(display);
   }
 
   function extractMatchEvents(summary, homeId){
@@ -2867,21 +2982,26 @@
         continue;
       }
 
-      // ESPN può indicare il cartellino tramite flag oppure nel testo del tipo.
+      // Keep a second-yellow dismissal distinct from a direct red.
+      const isSecondYellow =
+        typeText.includes("second yellow") ||
+        typeText.includes("2nd yellow");
+
       const isRed =
-        !!d?.redCard ||
-        typeText.includes("red card") ||
-        typeText.includes("second yellow");
+        !isSecondYellow && (
+          !!d?.redCard ||
+          typeText.includes("red card")
+        );
 
       const isYellow =
-        !isRed && (
+        !isSecondYellow && !isRed && (
           !!d?.yellowCard ||
           typeText.includes("yellow card")
         );
 
-      if(isRed || isYellow){
+      if(isSecondYellow || isRed || isYellow){
         events.push({
-          kind:isRed ? "red" : "yellow",
+          kind:isSecondYellow ? "secondyellow" : (isRed ? "red" : "yellow"),
           side,
           player:displayName,
           minute
@@ -2916,11 +3036,20 @@
       play?.time?.displayValue ||
       play?.period?.displayValue ||
       "";
-    if(direct) return direct;
+
+    if(direct) return normalizeFootballMinute(direct);
 
     const txt = playText(play);
-    const m = txt.match(/^\s*(\d+(?:'\+\d+)?')/);
-    return m ? m[1] : "";
+
+    let m = txt.match(
+      /^\s*(\d{1,3})['’]?\s*\+\s*(\d{1,2})['’]?/
+    );
+    if(m){
+      return normalizeFootballMinute(`${m[1]}+${m[2]}'`);
+    }
+
+    m = txt.match(/^\s*(\d{1,3})['’]?/);
+    return m ? normalizeFootballMinute(m[1]) : "";
   }
 
   function playAthleteName(play){
@@ -3079,21 +3208,67 @@
     const typeText = String(
       play?.type?.text ||
       play?.type?.description ||
-      playText(play)
+      ""
     ).toLowerCase();
-    const txt = playText(play).toLowerCase();
+
+    const txtRaw = playText(play);
+    const txt = txtRaw.toLowerCase();
+
+    // Explicit ESPN VAR decision phrases.
+    if(/^var decision:\s*no goal\b/i.test(txtRaw)){
+      return "varnogoal";
+    }
+
+    if(/^var decision:\s*no penalty\b/i.test(txtRaw)){
+      return "varnopenalty";
+    }
+
+    if(/^var decision:\s*penalty\b/i.test(txtRaw)){
+      return "varpenalty";
+    }
+
+    if(/^var decision:\s*goal\b/i.test(txtRaw)){
+      return "vargoal";
+    }
+
+    if(
+      /^goal overturned by var:/i.test(txtRaw) ||
+      txt.includes("goal overturned by var") ||
+      (
+        txt.includes("goal is ruled out") &&
+        txt.includes("var review")
+      )
+    ){
+      return "goaldisallowed";
+    }
+
+    if(
+      /^var (?:check|review)\b/i.test(txtRaw) ||
+      /^video assistant referee (?:check|review)\b/i.test(txtRaw)
+    ){
+      return "varreview";
+    }
+
+    const secondYellow =
+      typeText.includes("second yellow") ||
+      typeText.includes("2nd yellow") ||
+      txt.includes("second yellow card") ||
+      txt.includes("second yellow");
+
+    if(secondYellow) return "secondyellow";
 
     if(
       typeId === "95" ||
       play?.redCard ||
       typeText.includes("red card") ||
-      typeText.includes("second yellow")
+      txt.includes("shown the red card")
     ) return "red";
 
     if(
       typeId === "94" ||
       play?.yellowCard ||
-      typeText.includes("yellow card")
+      typeText.includes("yellow card") ||
+      txt.includes("shown the yellow card")
     ) return "yellow";
 
     const savedPenalty =
@@ -3113,6 +3288,14 @@
       txt.includes("failed penalty");
 
     if(missedPenalty) return "penmiss";
+
+    // "Penalty Napoli. Player draws a foul in the penalty area."
+    // Do NOT mistake "Penalty conceded by..." for a new award.
+    if(
+      /^penalty\s+(?!conceded\b|saved\b|missed\b)[^.]+\./i.test(txtRaw)
+    ){
+      return "penaltyawarded";
+    }
 
     if(
       typeText.includes("substitution") ||
@@ -3140,7 +3323,23 @@
       if(side) return side;
     }
 
+    // VAR Decision / Penalty lines often name the team without parentheses.
+    const fromWholeText = sideFromTeamText(txt,ev);
+    if(fromWholeText) return fromWholeText;
+
     return "";
+  }
+
+  function varGoalPlayerFromText(text){
+    const m = String(text || "").match(/\(([^)]+)\)\s*\.?\s*$/);
+    return m ? m[1].trim() : "";
+  }
+
+  function penaltyWinnerFromText(text){
+    const m = String(text || "").match(
+      /^Penalty\s+[^.]+\.\s*(.+?)\s+draws a foul\b/i
+    );
+    return m ? m[1].trim() : "";
   }
 
   function specialEventFromPlay(play, ev, homeId){
@@ -3166,15 +3365,57 @@
       };
     }
 
-    const player = playAthleteName(play);
     const side = specialSide(play,ev,homeId);
-    if(!player || !side) return null;
+    if(!side) return null;
+
+    const minute = playMinute(play);
+    const txt = playText(play);
+
+    if(
+      kind === "varnogoal" ||
+      kind === "varnopenalty" ||
+      kind === "varpenalty" ||
+      kind === "vargoal" ||
+      kind === "varreview" ||
+      kind === "penaltyawarded"
+    ){
+      let player = "";
+
+      if(kind === "vargoal"){
+        player = varGoalPlayerFromText(txt);
+      }else if(kind === "penaltyawarded"){
+        player = penaltyWinnerFromText(txt);
+      }
+
+      return {
+        kind,
+        side,
+        player,
+        minute,
+        text:txt
+      };
+    }
+
+    const player = playAthleteName(play);
+
+    if(kind === "goaldisallowed"){
+      return {
+        kind,
+        side,
+        player:player || "—",
+        minute,
+        text:txt
+      };
+    }
+
+    if(!player) return null;
 
     return {
       kind,
       side,
       player,
-      minute:playMinute(play)
+      minute,
+      text:txt
     };
   }
 
@@ -3192,7 +3433,7 @@
     return [
       e.kind,
       e.side,
-      normalizedTeamText(e.player),
+      normalizedTeamText(e.player || ""),
       String(e.minute || "")
     ].join("|");
   }
@@ -3216,11 +3457,18 @@
           !!node?.participants ||
           txt.includes("is shown the yellow card") ||
           txt.includes("is shown the red card") ||
+          txt.includes("second yellow") ||
           txt.includes("penalty saved") ||
           txt.includes("penalty is saved") ||
           txt.includes("penalty was saved") ||
           txt.includes("misses a penalty") ||
           txt.includes("penalty missed") ||
+          txt.startsWith("penalty ") ||
+          txt.startsWith("var decision:") ||
+          txt.startsWith("var check") ||
+          txt.startsWith("var review") ||
+          txt.includes("goal overturned by var") ||
+          (txt.includes("goal is ruled out") && txt.includes("var review")) ||
           (txt.includes("substitution") && txt.includes("replaces"));
 
         if(kind && eventLike){
@@ -3243,6 +3491,87 @@
     const unique = new Map();
     events.forEach(e=>unique.set(specialEventKey(e),e));
     return [...unique.values()];
+  }
+
+  function minuteDistance(a,b){
+    const av = eventMinuteValue(a);
+    const bv = eventMinuteValue(b);
+
+    if(
+      av === Number.MAX_SAFE_INTEGER ||
+      bv === Number.MAX_SAFE_INTEGER
+    ) return Number.MAX_SAFE_INTEGER;
+
+    // eventMinuteValue uses baseMinute*100 + stoppage.
+    return Math.abs(av-bv);
+  }
+
+  function normalizeAdvancedTimeline(items){
+    const sorted = items
+      .map((e,index)=>({...e,_mergeOrder:index}))
+      .sort((a,b)=>
+        eventMinuteValue(a.minute)-eventMinuteValue(b.minute) ||
+        a._mergeOrder-b._mergeOrder
+      );
+
+    const out = [];
+
+    for(const item of sorted){
+      // GOAL OVERTURNED BY VAR is richer than the later
+      // "VAR Decision: No Goal" line because it contains the player.
+      if(item.kind === "varnogoal"){
+        const richer = out.some(prev=>
+          prev.kind === "goaldisallowed" &&
+          prev.side === item.side &&
+          minuteDistance(prev.minute,item.minute) <= 500
+        );
+        if(richer) continue;
+      }
+
+      // If a generic penalty award is immediately followed by an explicit
+      // VAR Penalty decision, keep one event and mark it as VAR-confirmed.
+      if(item.kind === "varpenalty"){
+        let merged = false;
+
+        for(let i=out.length-1;i>=0;i--){
+          const prev = out[i];
+
+          if(
+            prev.kind === "penaltyawarded" &&
+            prev.side === item.side &&
+            minuteDistance(prev.minute,item.minute) <= 400
+          ){
+            out[i] = {
+              ...prev,
+              minute:item.minute || prev.minute,
+              varConfirmed:true
+            };
+            merged = true;
+            break;
+          }
+        }
+
+        if(merged) continue;
+      }
+
+      if(item.kind === "varnopenalty"){
+        const hadAward = [...out]
+          .reverse()
+          .find(prev=>
+            prev.kind === "penaltyawarded" &&
+            prev.side === item.side &&
+            minuteDistance(prev.minute,item.minute) <= 500
+          );
+
+        if(hadAward){
+          item.penaltyRevoked = true;
+        }
+      }
+
+      out.push(item);
+    }
+
+    return out.map(({_mergeOrder,...event})=>event);
   }
 
   async function specialPlaysFor(ev, homeId){
@@ -3738,13 +4067,7 @@
       const combined = [...baseEvents];
       const seenSpecials = new Set(
         combined
-          .filter(e=>
-            e.kind==="yellow" ||
-            e.kind==="red" ||
-            e.kind==="penmiss" ||
-            e.kind==="pensaved" ||
-            e.kind==="sub"
-          )
+          .filter(e=>e.kind !== "goal")
           .map(specialEventKey)
       );
 
@@ -3756,7 +4079,8 @@
         }
       }
 
-      const value = {events:combined,lineups,statistics};
+      const advancedEvents = normalizeAdvancedTimeline(combined);
+      const value = {events:advancedEvents,lineups,statistics};
       matchDetailsCache.set(ev.id,value);
       return value;
     }catch{
@@ -3882,6 +4206,42 @@
     return `<i class="ph ph-hand event-ph pen-saved" aria-label="Rigore parato"></i>`;
   }
 
+  function varMonitorIcon(mark=""){
+    if(mark === "accept"){
+      return `<span class="event-overlay-wrap" aria-label="Decisione VAR">
+        <i class="ph ph-monitor event-ph" aria-hidden="true"></i>
+        <i class="ph ph-check event-overlay-mark accept" aria-hidden="true"></i>
+      </span>`;
+    }
+
+    return `<i class="ph ph-monitor event-ph" aria-label="VAR"></i>`;
+  }
+
+  function whistleIcon(mark=""){
+    if(mark === "reject"){
+      return `<span class="event-overlay-wrap" aria-label="Rigore non assegnato">
+        <i class="ph ph-whistle event-ph" aria-hidden="true"></i>
+        <i class="ph ph-x event-overlay-mark reject" aria-hidden="true"></i>
+      </span>`;
+    }
+
+    return `<i class="ph ph-whistle event-ph" aria-label="Rigore"></i>`;
+  }
+
+  function disallowedGoalIcon(){
+    return `<span class="pen-miss-wrap" aria-label="Gol annullato">
+      <i class="ph ph-soccer-ball" aria-hidden="true"></i>
+      <i class="ph ph-x" aria-hidden="true"></i>
+    </span>`;
+  }
+
+  function secondYellowIcon(){
+    return `<span class="second-yellow-cards" aria-label="Secondo giallo ed espulsione">
+      <span class="event-card yellow" aria-hidden="true"></span>
+      <span class="event-card red" aria-hidden="true"></span>
+    </span>`;
+  }
+
   function substitutionIcon(){
     return `<span class="sub-ph" aria-label="Sostituzione">
       <svg class="sub-svg sub-up" viewBox="0 0 24 24" aria-hidden="true">
@@ -3903,10 +4263,33 @@
     if(e.kind === "goal"){
       return soccerBallIcon(e.ownGoal ? "own-goal" : "");
     }
+
+    if(e.kind === "goaldisallowed" || e.kind === "varnogoal"){
+      return disallowedGoalIcon();
+    }
+
+    if(e.kind === "vargoal"){
+      return varMonitorIcon("accept");
+    }
+
+    if(e.kind === "varreview"){
+      return varMonitorIcon();
+    }
+
+    if(e.kind === "penaltyawarded" || e.kind === "varpenalty"){
+      return whistleIcon();
+    }
+
+    if(e.kind === "varnopenalty"){
+      return whistleIcon("reject");
+    }
+
     if(e.kind === "pensaved") return savedPenaltyIcon();
     if(e.kind === "penmiss") return missedPenaltyIcon();
+    if(e.kind === "secondyellow") return secondYellowIcon();
     if(e.kind === "red") return `<span class="event-card red" aria-label="Cartellino rosso"></span>`;
     if(e.kind === "sub") return substitutionIcon();
+
     return `<span class="event-card yellow" aria-label="Cartellino giallo"></span>`;
   }
 
@@ -3916,6 +4299,54 @@
         <div class="timeline-sub-in">${esc(shortPlayerName(e.playerIn))}</div>
         <span class="timeline-sub-out">${esc(shortPlayerName(e.playerOut))}</span>
       `;
+    }
+
+    if(e.kind === "goaldisallowed"){
+      const player = e.player && e.player !== "—"
+        ? `<div class="timeline-main">${esc(shortPlayerName(e.player))}</div>`
+        : "";
+
+      return `${player}<span class="timeline-event-note danger">Gol annullato · VAR</span>`;
+    }
+
+    if(e.kind === "varnogoal"){
+      return `<div class="timeline-main">Gol annullato</div>
+        <span class="timeline-event-note var">Decisione VAR</span>`;
+    }
+
+    if(e.kind === "vargoal"){
+      const player = e.player
+        ? `<span class="timeline-event-note">${esc(shortPlayerName(e.player))}</span>`
+        : "";
+
+      return `<div class="timeline-main">Gol convalidato</div>
+        <span class="timeline-event-note success">Decisione VAR</span>${player}`;
+    }
+
+    if(e.kind === "varreview"){
+      return `<div class="timeline-main">Controllo VAR</div>`;
+    }
+
+    if(e.kind === "penaltyawarded" || e.kind === "varpenalty"){
+      const player = e.player
+        ? `<span class="timeline-event-note">${esc(shortPlayerName(e.player))}</span>`
+        : "";
+
+      const varNote = e.varConfirmed || e.kind === "varpenalty"
+        ? `<span class="timeline-event-note var">Decisione VAR</span>`
+        : "";
+
+      return `<div class="timeline-main">Rigore assegnato</div>${varNote}${player}`;
+    }
+
+    if(e.kind === "varnopenalty"){
+      return `<div class="timeline-main">${e.penaltyRevoked ? "Rigore revocato" : "Nessun rigore"}</div>
+        <span class="timeline-event-note danger">Decisione VAR</span>`;
+    }
+
+    if(e.kind === "secondyellow"){
+      return `<div class="timeline-main">${esc(shortPlayerName(e.player))}</div>
+        <span class="timeline-event-note danger">Secondo giallo</span>`;
     }
 
     const assist = e.kind === "goal" && e.assist && !e.ownGoal
