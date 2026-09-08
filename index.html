@@ -17,7 +17,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Serie A Live">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="app-version" content="3.5.2">
+  <meta name="app-version" content="3.5.3">
   <script>
     (() => {
       const key = "serie-a-live-theme";
@@ -342,6 +342,42 @@
     .timeline-main{
       color:var(--ink);
       font-weight:400;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .timeline-period{
+      position:relative;
+      z-index:2;
+      display:flex;
+      align-items:center;
+      gap:9px;
+      margin:2px 0 11px;
+      color:var(--muted);
+      font-size:9px;
+      font-weight:850;
+      letter-spacing:.065em;
+      text-transform:uppercase;
+    }
+
+    .timeline-period.second{
+      margin-top:14px;
+    }
+
+    .timeline-period::before,
+    .timeline-period::after{
+      content:"";
+      height:.5px;
+      flex:1 1 auto;
+      background:var(--line);
+    }
+
+    .timeline-period span{
+      flex:0 0 auto;
+      padding:2px 6px;
+      border-radius:6px;
+      background:var(--surface-soft);
     }
     .timeline-assist{
       display:block;
@@ -349,6 +385,9 @@
       font-size:11.5px;
       font-weight:400;
       margin-top:1px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
     }
     .timeline-sub-in,
     .timeline-sub-out{
@@ -368,25 +407,6 @@
       font-weight:400;
       margin-top:1px;
     }
-    .timeline-injury{
-      display:inline-flex;
-      align-items:center;
-      gap:3px;
-      margin-top:2px;
-      color:var(--muted);
-      font-size:10px;
-      line-height:1;
-      font-weight:650;
-      white-space:nowrap;
-    }
-
-    .timeline-injury i{
-      color:#c4322b;
-      font-size:12px;
-      line-height:1;
-      font-weight:400;
-    }
-
     .timeline-sub-arrow{
       display:none;
     }
@@ -431,6 +451,10 @@
     .event-ph.pen-saved{
       color:#344054;
     }
+
+    .event-ph.injury{
+      color:#c4322b;
+    }
     .event-card{
       display:block;
       width:11px;
@@ -446,28 +470,12 @@
       background:#d92d20;
       border:1px solid #b42318;
     }
-    .sub-ph{
-      width:24px;
-      height:28px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:0px;
-      margin:0 auto;
+    .substitution-ph{
+      font-size:21px;
+      line-height:1;
+      color:#667085;
+      font-weight:400;
     }
-    .sub-svg{
-      width:16px;
-      height:16px;
-      fill:none;
-      stroke:currentColor;
-      stroke-width:2.8;
-      stroke-linecap:round;
-      stroke-linejoin:round;
-      flex:0 0 auto;
-      display:block;
-    }
-    .sub-ph .sub-up{color:#168447}
-    .sub-ph .sub-down{color:#c4322b}
 
     .assist-icon{
       display:inline-block;
@@ -584,7 +592,7 @@
       color:#ff817a;
     }
 
-    html.theme-dark .timeline-injury i{
+    html.theme-dark .event-ph.injury{
       color:#ff817a;
     }
 
@@ -1132,22 +1140,7 @@
       font-weight:800;
     }
 
-    .demo-event-label{
-      display:inline-block;
-      margin-top:2px;
-      padding:2px 5px;
-      border-radius:6px;
-      background:var(--surface-soft);
-      color:var(--muted);
-      font-size:8px;
-      line-height:1.1;
-      font-weight:800;
-      letter-spacing:.035em;
-      text-transform:uppercase;
-    }
-
     html.theme-dark .demo-lab-badge,
-    html.theme-dark .demo-event-label,
     html.theme-dark .demo-team-badge{
       background:#202832;
     }
@@ -4415,16 +4408,10 @@
   }
 
   function substitutionIcon(){
-    return `<span class="sub-ph" aria-label="Sostituzione">
-      <svg class="sub-svg sub-up" viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M12 21V5"></path>
-        <path d="M8 9l4-4 4 4"></path>
-      </svg>
-      <svg class="sub-svg sub-down" viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M12 3v16"></path>
-        <path d="M8 15l4 4 4-4"></path>
-      </svg>
-    </span>`;
+    return `<i
+      class="ph ph-arrows-left-right substitution-ph"
+      aria-label="Sostituzione"
+    ></i>`;
   }
 
   function assistPassIcon(){
@@ -4458,6 +4445,13 @@
 
     if(e.kind === "pensaved") return savedPenaltyIcon();
     if(e.kind === "penmiss") return missedPenaltyIcon();
+
+    if(e.kind === "injury"){
+      return `<i
+        class="ph ph-first-aid-kit event-ph injury"
+        aria-label="Infortunio"
+      ></i>`;
+    }
     if(e.kind === "secondyellow") return secondYellowIcon();
     if(e.kind === "red") return `<span class="event-card red" aria-label="Cartellino rosso"></span>`;
     if(e.kind === "sub") return substitutionIcon();
@@ -4467,40 +4461,37 @@
 
   function eventInfoHtml(e){
     if(e.kind === "sub"){
-      const injury = e.injury
-        ? `<span class="timeline-injury">
-            <i class="ph ph-first-aid-kit" aria-hidden="true"></i>
-            Infortunio
-          </span>`
-        : "";
-
       return `
         <div class="timeline-sub-in">${esc(shortPlayerName(e.playerIn))}</div>
         <span class="timeline-sub-out">${esc(shortPlayerName(e.playerOut))}</span>
-        ${injury}
       `;
+    }
+
+    if(e.kind === "injury"){
+      return `<div class="timeline-main">${esc(shortPlayerName(e.player))}</div>
+        <span class="timeline-event-note danger">Infortunio</span>`;
     }
 
     if(e.kind === "goaldisallowed"){
       const player = e.player && e.player !== "—"
         ? `<div class="timeline-main">${esc(shortPlayerName(e.player))}</div>`
-        : "";
+        : `<div class="timeline-main">Gol annullato</div>`;
 
-      return `${player}<span class="timeline-event-note danger">Gol annullato · VAR</span>`;
+      return `${player}
+        <span class="timeline-event-note danger">Gol annullato</span>`;
     }
 
     if(e.kind === "varnogoal"){
-      return `<div class="timeline-main">Gol annullato</div>
-        <span class="timeline-event-note var">Decisione VAR</span>`;
+      return `<div class="timeline-main">Gol annullato</div>`;
     }
 
     if(e.kind === "vargoal"){
       const player = e.player
-        ? `<span class="timeline-event-note">${esc(shortPlayerName(e.player))}</span>`
-        : "";
+        ? `<div class="timeline-main">${esc(shortPlayerName(e.player))}</div>`
+        : `<div class="timeline-main">Gol convalidato</div>`;
 
-      return `<div class="timeline-main">Gol convalidato</div>
-        <span class="timeline-event-note success">Decisione VAR</span>${player}`;
+      return `${player}
+        <span class="timeline-event-note success">Gol convalidato</span>`;
     }
 
     if(e.kind === "varreview"){
@@ -4508,20 +4499,16 @@
     }
 
     if(e.kind === "penaltyawarded" || e.kind === "varpenalty"){
-      const player = e.player
-        ? `<span class="timeline-event-note">${esc(shortPlayerName(e.player))}</span>`
-        : "";
+      const first = e.player
+        ? `<div class="timeline-main">${esc(shortPlayerName(e.player))}</div>`
+        : `<div class="timeline-main">Rigore assegnato</div>`;
 
-      const varNote = e.varConfirmed || e.kind === "varpenalty"
-        ? `<span class="timeline-event-note var">Decisione VAR</span>`
-        : "";
-
-      return `<div class="timeline-main">Rigore assegnato</div>${varNote}${player}`;
+      return `${first}
+        ${e.player ? `<span class="timeline-event-note">Rigore assegnato</span>` : ""}`;
     }
 
     if(e.kind === "varnopenalty"){
-      return `<div class="timeline-main">${e.penaltyRevoked ? "Rigore revocato" : "Nessun rigore"}</div>
-        <span class="timeline-event-note danger">Decisione VAR</span>`;
+      return `<div class="timeline-main">${e.penaltyRevoked ? "Rigore revocato" : "Nessun rigore"}</div>`;
     }
 
     if(e.kind === "secondyellow"){
@@ -4544,6 +4531,56 @@
     return `${esc(e.minute || "")}${esc(tag)}`;
   }
 
+  function eventBaseMinute(minute){
+    const m = String(minute || "").match(/(\d+)/);
+    return m ? Number(m[1]) : 0;
+  }
+
+  function timelineDisplayEvents(timeline){
+    return timeline.flatMap(e=>{
+      if(e.kind === "sub" && e.injury){
+        return [
+          {
+            kind:"injury",
+            side:e.side,
+            player:e.playerOut,
+            minute:e.minute
+          },
+          {
+            ...e,
+            injury:false
+          }
+        ];
+      }
+
+      return [e];
+    });
+  }
+
+  function timelineRowsHtml(events){
+    return events.map(e=>`
+      <div class="timeline-row ${e.side === "home" ? "home-event" : "away-event"}">
+        <div class="timeline-info home">
+          ${e.side === "home" ? eventInfoHtml(e) : ""}
+        </div>
+
+        ${e.side === "away"
+          ? `<div class="timeline-minute away">${eventMinuteHtml(e)}</div>`
+          : `<div></div>`}
+
+        <div class="timeline-icon">${eventIcon(e)}</div>
+
+        ${e.side === "home"
+          ? `<div class="timeline-minute home">${eventMinuteHtml(e)}</div>`
+          : `<div></div>`}
+
+        <div class="timeline-info away">
+          ${e.side === "away" ? eventInfoHtml(e) : ""}
+        </div>
+      </div>
+    `).join("");
+  }
+
   function eventsPanelHtml(m,timeline){
     if(m.status === "pre"){
       return `<div class="detail-message">Partita non iniziata.</div>`;
@@ -4553,28 +4590,33 @@
       return `<div class="detail-message">Nessun evento disponibile.</div>`;
     }
 
-    return `<div class="events">
-      ${timeline.map(e=>`
-        <div class="timeline-row ${e.side === "home" ? "home-event" : "away-event"}">
-          <div class="timeline-info home">
-            ${e.side === "home" ? eventInfoHtml(e) : ""}
-          </div>
+    const displayEvents = timelineDisplayEvents(timeline);
 
-          ${e.side === "away"
-            ? `<div class="timeline-minute away">${eventMinuteHtml(e)}</div>`
-            : `<div></div>`}
+    const firstHalf = displayEvents.filter(
+      e=>eventBaseMinute(e.minute) <= 45
+    );
 
-          <div class="timeline-icon">${eventIcon(e)}</div>
+    const secondHalf = displayEvents.filter(
+      e=>eventBaseMinute(e.minute) >= 46
+    );
 
-          ${e.side === "home"
-            ? `<div class="timeline-minute home">${eventMinuteHtml(e)}</div>`
-            : `<div></div>`}
-
-          <div class="timeline-info away">
-            ${e.side === "away" ? eventInfoHtml(e) : ""}
-          </div>
+    const firstHtml = firstHalf.length
+      ? `<div class="timeline-period">
+          <span>1° TEMPO</span>
         </div>
-      `).join("")}
+        ${timelineRowsHtml(firstHalf)}`
+      : "";
+
+    const secondHtml = secondHalf.length
+      ? `<div class="timeline-period second">
+          <span>2° TEMPO</span>
+        </div>
+        ${timelineRowsHtml(secondHalf)}`
+      : "";
+
+    return `<div class="events">
+      ${firstHtml}
+      ${secondHtml}
     </div>`;
   }
 
@@ -4589,7 +4631,8 @@
       {kind:"goal",side:"away",player:"Giorgio Gialli",ownGoal:true,minute:"38'"},
       {kind:"pensaved",side:"home",player:"Luca Rossi",minute:"45+2'"},
       {kind:"sub",side:"home",playerIn:"Matteo Costa",playerOut:"Marco Bianchi",injury:false,minute:"54'"},
-      {kind:"sub",side:"away",playerIn:"Fabio Riva",playerOut:"Andrea Verdi",injury:true,minute:"61'"},
+      {kind:"injury",side:"away",player:"Andrea Verdi",minute:"60'"},
+      {kind:"sub",side:"away",playerIn:"Fabio Riva",playerOut:"Andrea Verdi",injury:false,minute:"61'"},
       {kind:"secondyellow",side:"away",player:"Stefano Viola",minute:"67'"},
       {kind:"vargoal",side:"home",player:"Luca Rossi",minute:"72'"},
       {kind:"penaltyawarded",side:"away",player:"Paolo Neri",minute:"76'",varConfirmed:true},
@@ -4602,32 +4645,6 @@
     ];
   }
 
-  function demoEventLegendHtml(){
-    const items = [
-      "Gol + assist",
-      "Giallo",
-      "Rigore assegnato",
-      "Gol su rigore",
-      "Controllo VAR",
-      "Gol annullato",
-      "Autogol",
-      "Rigore parato",
-      "Sostituzione",
-      "Sostituzione per infortunio",
-      "Secondo giallo",
-      "Gol convalidato VAR",
-      "Rigore confermato VAR",
-      "Rigore revocato",
-      "Nessun rigore",
-      "Rigore sbagliato",
-      "Rosso diretto",
-      "Recupero 45+2' / 90+5'"
-    ];
-
-    return `<div style="display:flex;flex-wrap:wrap;gap:4px 5px;padding:9px 10px 0">
-      ${items.map(x=>`<span class="demo-event-label">${esc(x)}</span>`).join("")}
-    </div>`;
-  }
 
   function demoTimelineMatchHtml(){
     const demoMatch = {status:"done"};
@@ -4639,7 +4656,7 @@
       </div>
 
       <div class="demo-lab-note">
-        Questa partita non arriva da ESPN: raccoglie tutti gli eventi che l'app sa mostrare, così possiamo rifinire la timeline avendoli insieme.
+        Timeline completa di prova per rifinire insieme grafica, icone e spaziature.
       </div>
 
       <article class="match done demo-match">
@@ -4659,8 +4676,6 @@
             <div class="demo-team-name">Squadra B</div>
           </div>
         </div>
-
-        ${demoEventLegendHtml()}
 
         <div class="match-details">
           <div class="detail-tabs" aria-hidden="true">
