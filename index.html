@@ -17,7 +17,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Serie A Live">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="app-version" content="3.6">
+  <meta name="app-version" content="3.6.1">
   <script>
     (() => {
       const key = "serie-a-live-theme";
@@ -362,7 +362,26 @@
     }
 
     .timeline-period.second{
-      margin-top:14px;
+      margin-top:2px;
+    }
+
+    .timeline-period.interval{
+      margin:13px 0;
+      color:var(--ink);
+    }
+
+    .timeline-period.interval span{
+      display:inline-flex;
+      align-items:center;
+      gap:5px;
+      background:var(--card);
+      font-size:9.5px;
+    }
+
+    .timeline-period-score{
+      font-weight:900;
+      font-variant-numeric:tabular-nums;
+      letter-spacing:0;
     }
 
     .timeline-period::before,
@@ -4873,6 +4892,31 @@
     `).join("");
   }
 
+  function halftimeScoreFromEvents(events){
+    let home = 0;
+    let away = 0;
+
+    for(const e of events){
+      if(
+        e.kind !== "goal" ||
+        eventBaseMinute(e.minute) > 45
+      ){
+        continue;
+      }
+
+      if(e.side === "home") home += 1;
+      if(e.side === "away") away += 1;
+    }
+
+    return {home,away};
+  }
+
+  function eventsDescending(events){
+    return [...events].sort((a,b)=>
+      eventMinuteValue(b.minute) - eventMinuteValue(a.minute)
+    );
+  }
+
   function eventsPanelHtml(m,timeline){
     if(m.status === "pre"){
       return `<div class="detail-message">Partita non iniziata.</div>`;
@@ -4884,20 +4928,24 @@
 
     const displayEvents = timelineDisplayEvents(timeline);
 
-    const firstHalf = displayEvents.filter(
-      e=>eventBaseMinute(e.minute) <= 45
+    const firstHalf = eventsDescending(
+      displayEvents.filter(
+        e=>eventBaseMinute(e.minute) <= 45
+      )
     );
 
-    const secondHalf = displayEvents.filter(
-      e=>eventBaseMinute(e.minute) >= 46
+    const secondHalf = eventsDescending(
+      displayEvents.filter(
+        e=>eventBaseMinute(e.minute) >= 46
+      )
     );
 
-    const firstHtml = firstHalf.length
-      ? `<div class="timeline-period">
-          <span>1° TEMPO</span>
-        </div>
-        ${timelineRowsHtml(firstHalf)}`
-      : "";
+    const halftime = halftimeScoreFromEvents(displayEvents);
+
+    const hasReachedHalftime =
+      secondHalf.length > 0 ||
+      m.status === "done" ||
+      String(m.statusText || "").toLowerCase() === "intervallo";
 
     const secondHtml = secondHalf.length
       ? `<div class="timeline-period second">
@@ -4906,9 +4954,29 @@
         ${timelineRowsHtml(secondHalf)}`
       : "";
 
+    const intervalHtml = hasReachedHalftime
+      ? `<div class="timeline-period interval">
+          <span>
+            INTERVALLO
+            <strong class="timeline-period-score">
+              ${esc(halftime.home)}–${esc(halftime.away)}
+            </strong>
+          </span>
+        </div>`
+      : "";
+
+    const firstHtml = firstHalf.length
+      ? `<div class="timeline-period">
+          <span>1° TEMPO</span>
+        </div>
+        ${timelineRowsHtml(firstHalf)}`
+      : "";
+
+    // LIVE-first reading: newest events at the top.
     return `<div class="events">
-      ${firstHtml}
       ${secondHtml}
+      ${intervalHtml}
+      ${firstHtml}
     </div>`;
   }
 
