@@ -17,7 +17,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Serie A Live">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="app-version" content="3.5.1">
+  <meta name="app-version" content="3.5.2">
   <script>
     (() => {
       const key = "serie-a-live-theme";
@@ -1049,6 +1049,107 @@
       font-weight:900;
       line-height:1;
       font-variant-numeric:tabular-nums;
+    }
+
+    /* V3.5.2 — Timeline laboratory */
+    .demo-lab{
+      margin-top:18px;
+      padding-top:4px;
+    }
+
+    .demo-lab-heading{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin:0 2px 8px;
+    }
+
+    .demo-lab-title{
+      font-size:11px;
+      font-weight:900;
+      letter-spacing:.065em;
+      text-transform:uppercase;
+    }
+
+    .demo-lab-badge{
+      flex:0 0 auto;
+      padding:4px 7px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      background:var(--surface-soft);
+      color:var(--muted);
+      font-size:8.5px;
+      font-weight:850;
+      letter-spacing:.055em;
+      text-transform:uppercase;
+    }
+
+    .demo-lab-note{
+      margin:0 2px 9px;
+      color:var(--muted);
+      font-size:10px;
+      line-height:1.35;
+    }
+
+    .demo-match{
+      overflow:hidden;
+    }
+
+    .demo-match .match-main{
+      border-bottom:.5px solid var(--line);
+    }
+
+    .demo-team{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:5px;
+      min-width:0;
+      text-align:center;
+    }
+
+    .demo-team-badge{
+      width:38px;
+      height:38px;
+      display:grid;
+      place-items:center;
+      border:1px solid var(--line);
+      border-radius:50%;
+      background:var(--surface-soft);
+      color:var(--ink);
+      font-size:13px;
+      font-weight:900;
+    }
+
+    .demo-team-name{
+      max-width:100%;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      font-size:11px;
+      font-weight:800;
+    }
+
+    .demo-event-label{
+      display:inline-block;
+      margin-top:2px;
+      padding:2px 5px;
+      border-radius:6px;
+      background:var(--surface-soft);
+      color:var(--muted);
+      font-size:8px;
+      line-height:1.1;
+      font-weight:800;
+      letter-spacing:.035em;
+      text-transform:uppercase;
+    }
+
+    html.theme-dark .demo-lab-badge,
+    html.theme-dark .demo-event-label,
+    html.theme-dark .demo-team-badge{
+      background:#202832;
     }
 
     .skeleton-stack{
@@ -4477,6 +4578,105 @@
     </div>`;
   }
 
+  function demoTimelineEvents(){
+    return [
+      {kind:"goal",side:"home",player:"Luca Rossi",assist:"Marco Bianchi",minute:"12'"},
+      {kind:"yellow",side:"away",player:"Andrea Verdi",minute:"18'"},
+      {kind:"penaltyawarded",side:"away",player:"Paolo Neri",minute:"24'"},
+      {kind:"goal",side:"away",player:"Paolo Neri",penalty:true,minute:"25'"},
+      {kind:"varreview",side:"home",minute:"31'"},
+      {kind:"goaldisallowed",side:"home",player:"Davide Blu",minute:"32'"},
+      {kind:"goal",side:"away",player:"Giorgio Gialli",ownGoal:true,minute:"38'"},
+      {kind:"pensaved",side:"home",player:"Luca Rossi",minute:"45+2'"},
+      {kind:"sub",side:"home",playerIn:"Matteo Costa",playerOut:"Marco Bianchi",injury:false,minute:"54'"},
+      {kind:"sub",side:"away",playerIn:"Fabio Riva",playerOut:"Andrea Verdi",injury:true,minute:"61'"},
+      {kind:"secondyellow",side:"away",player:"Stefano Viola",minute:"67'"},
+      {kind:"vargoal",side:"home",player:"Luca Rossi",minute:"72'"},
+      {kind:"penaltyawarded",side:"away",player:"Paolo Neri",minute:"76'",varConfirmed:true},
+      {kind:"varnopenalty",side:"away",penaltyRevoked:true,minute:"77'"},
+      {kind:"varnopenalty",side:"home",penaltyRevoked:false,minute:"80'"},
+      {kind:"penmiss",side:"away",player:"Paolo Neri",minute:"83'"},
+      {kind:"goal",side:"away",player:"Fabio Riva",assist:"Paolo Neri",minute:"85'"},
+      {kind:"red",side:"home",player:"Matteo Costa",minute:"89'"},
+      {kind:"vargoal",side:"home",player:"Davide Blu",minute:"90+5'"}
+    ];
+  }
+
+  function demoEventLegendHtml(){
+    const items = [
+      "Gol + assist",
+      "Giallo",
+      "Rigore assegnato",
+      "Gol su rigore",
+      "Controllo VAR",
+      "Gol annullato",
+      "Autogol",
+      "Rigore parato",
+      "Sostituzione",
+      "Sostituzione per infortunio",
+      "Secondo giallo",
+      "Gol convalidato VAR",
+      "Rigore confermato VAR",
+      "Rigore revocato",
+      "Nessun rigore",
+      "Rigore sbagliato",
+      "Rosso diretto",
+      "Recupero 45+2' / 90+5'"
+    ];
+
+    return `<div style="display:flex;flex-wrap:wrap;gap:4px 5px;padding:9px 10px 0">
+      ${items.map(x=>`<span class="demo-event-label">${esc(x)}</span>`).join("")}
+    </div>`;
+  }
+
+  function demoTimelineMatchHtml(){
+    const demoMatch = {status:"done"};
+
+    return `<section class="demo-lab" aria-label="Timeline demo">
+      <div class="demo-lab-heading">
+        <div class="demo-lab-title">Partita prova</div>
+        <div class="demo-lab-badge">Demo · dati di test</div>
+      </div>
+
+      <div class="demo-lab-note">
+        Questa partita non arriva da ESPN: raccoglie tutti gli eventi che l'app sa mostrare, così possiamo rifinire la timeline avendoli insieme.
+      </div>
+
+      <article class="match done demo-match">
+        <div class="match-main">
+          <div class="demo-team">
+            <div class="demo-team-badge">A</div>
+            <div class="demo-team-name">Squadra A</div>
+          </div>
+
+          <div class="scorebox">
+            <div class="score">3–2</div>
+            <span class="status done">DEMO</span>
+          </div>
+
+          <div class="demo-team">
+            <div class="demo-team-badge">B</div>
+            <div class="demo-team-name">Squadra B</div>
+          </div>
+        </div>
+
+        ${demoEventLegendHtml()}
+
+        <div class="match-details">
+          <div class="detail-tabs" aria-hidden="true">
+            <button class="detail-tab active" type="button" tabindex="-1">EVENTI</button>
+            <button class="detail-tab" type="button" tabindex="-1" disabled>STATISTICHE</button>
+            <button class="detail-tab" type="button" tabindex="-1" disabled>FORMAZIONI</button>
+          </div>
+
+          <div class="detail-panel">
+            ${eventsPanelHtml(demoMatch,demoTimelineEvents())}
+          </div>
+        </div>
+      </article>
+    </section>`;
+  }
+
   function lineupRowsHtml(homePlayers,awayPlayers){
     const max = Math.max(homePlayers?.length || 0,awayPlayers?.length || 0);
     if(!max) return "";
@@ -5630,6 +5830,11 @@
       html += group.matches.map(matchHtml).join("");
     }
     if(!models.length) html += `<div class="message">Nessuna partita disponibile per questa giornata.</div>`;
+
+    // Temporary visual laboratory for V3 timeline refinement.
+    // Completely static: no ESPN data and no extra network requests.
+    html += demoTimelineMatchHtml();
+
     content.innerHTML = html;
     content.dataset.matchesRound = String(selectedRound);
 
