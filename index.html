@@ -17,7 +17,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Serie A Live">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="app-version" content="3.5.3">
+  <meta name="app-version" content="3.6">
   <script>
     (() => {
       const key = "serie-a-live-theme";
@@ -1674,6 +1674,268 @@
 
 
 
+    /* V3.6 — Match Page */
+    body.match-page-open{
+      position:fixed;
+      width:100%;
+      left:0;
+      right:0;
+      overflow:hidden;
+      overscroll-behavior:none;
+      touch-action:none;
+    }
+
+    body.match-page-open .match-page-scroll{
+      touch-action:pan-y;
+    }
+
+    .match-page{
+      position:fixed;
+      inset:0;
+      z-index:95;
+      display:block;
+      background:var(--bg);
+    }
+
+    .match-page[hidden]{
+      display:none;
+    }
+
+    .match-page-shell{
+      box-sizing:border-box;
+      width:100%;
+      height:100dvh;
+      display:flex;
+      flex-direction:column;
+      padding-top:env(safe-area-inset-top);
+      padding-bottom:env(safe-area-inset-bottom);
+      background:var(--bg);
+    }
+
+    .match-page-toolbar{
+      flex:0 0 auto;
+      min-height:50px;
+      display:grid;
+      grid-template-columns:40px minmax(0,1fr) 40px;
+      align-items:center;
+      gap:8px;
+      padding:4px 12px 5px;
+      border-bottom:.5px solid var(--line);
+      background:rgba(244,246,248,.94);
+      backdrop-filter:blur(18px) saturate(130%);
+      -webkit-backdrop-filter:blur(18px) saturate(130%);
+      z-index:8;
+    }
+
+    .match-page-toolbar-title{
+      min-width:0;
+      text-align:center;
+      color:var(--muted);
+      font-size:10px;
+      font-weight:850;
+      letter-spacing:.07em;
+      text-transform:uppercase;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .match-page-close{
+      appearance:none;
+      width:36px;
+      height:36px;
+      display:grid;
+      place-items:center;
+      padding:0;
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:var(--surface-soft);
+      color:var(--ink);
+      -webkit-tap-highlight-color:transparent;
+    }
+
+    .match-page-close i{
+      font-size:18px;
+      line-height:1;
+    }
+
+    .match-page-toolbar-spacer{
+      width:36px;
+      height:36px;
+    }
+
+    .match-page-scroll{
+      min-height:0;
+      flex:1 1 auto;
+      overflow-y:auto;
+      overscroll-behavior:contain;
+      -webkit-overflow-scrolling:touch;
+      background:var(--bg);
+    }
+
+    .match-page-summary{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) 92px minmax(0,1fr);
+      gap:10px;
+      align-items:center;
+      padding:22px 18px 18px;
+      background:var(--card);
+      border-bottom:.5px solid var(--line);
+    }
+
+    .match-page-team{
+      min-width:0;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:7px;
+      text-align:center;
+    }
+
+    .match-page-team img{
+      width:54px;
+      height:54px;
+      object-fit:contain;
+      display:block;
+    }
+
+    .match-page-team-name{
+      width:100%;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      font-size:13px;
+      line-height:1.15;
+      font-weight:850;
+    }
+
+    .match-page-scorebox{
+      min-width:0;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+      text-align:center;
+    }
+
+    .match-page-score{
+      font-size:34px;
+      line-height:.95;
+      font-weight:900;
+      letter-spacing:-.045em;
+      font-variant-numeric:tabular-nums;
+      white-space:nowrap;
+    }
+
+    .match-page-ko{
+      font-size:22px;
+      line-height:1;
+      font-weight:900;
+      font-variant-numeric:tabular-nums;
+    }
+
+    .match-page-status{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:22px;
+      padding:4px 8px;
+      border-radius:999px;
+      background:var(--surface-soft);
+      color:var(--muted);
+      font-size:9px;
+      line-height:1;
+      font-weight:850;
+      letter-spacing:.05em;
+      text-transform:uppercase;
+      white-space:nowrap;
+    }
+
+    .match-page-status.live{
+      background:#fff0f0;
+      color:#d92d20;
+    }
+
+    .match-page-status.done{
+      background:#ecfdf3;
+      color:#168447;
+    }
+
+    .match-page .detail-tabs{
+      position:sticky;
+      top:0;
+      z-index:6;
+      background:rgba(255,255,255,.96);
+      backdrop-filter:blur(16px) saturate(130%);
+      -webkit-backdrop-filter:blur(16px) saturate(130%);
+    }
+
+    .match-page .match-details{
+      border-top:0;
+      background:var(--surface-soft);
+    }
+
+    .match-page .detail-panel{
+      min-height:260px;
+      padding-bottom:20px;
+    }
+
+    .match-page-loading{
+      min-height:300px;
+      display:grid;
+      place-items:center;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:700;
+    }
+
+    html.theme-dark .match-page-toolbar{
+      background:rgba(11,15,20,.94);
+      border-bottom-color:#29313d;
+    }
+
+    html.theme-dark .match-page .detail-tabs{
+      background:rgba(21,26,33,.96);
+    }
+
+    html.theme-dark .match-page-status.live{
+      background:rgba(217,45,32,.16);
+      color:#ff817a;
+    }
+
+    html.theme-dark .match-page-status.done{
+      background:rgba(6,118,71,.18);
+      color:#68dba5;
+    }
+
+    @media(min-width:650px){
+      .match-page{
+        display:grid;
+        place-items:center;
+        padding:18px;
+        background:rgba(16,24,40,.28);
+        backdrop-filter:blur(5px);
+        -webkit-backdrop-filter:blur(5px);
+      }
+
+      .match-page[hidden]{
+        display:none;
+      }
+
+      .match-page-shell{
+        width:min(640px,100%);
+        height:min(860px,calc(100dvh - 36px));
+        padding-top:0;
+        padding-bottom:0;
+        border:1px solid var(--line);
+        border-radius:24px;
+        overflow:hidden;
+        box-shadow:0 24px 70px rgba(16,24,40,.24);
+      }
+    }
+
     /* V3.4 — Team sheet */
     body.team-sheet-open{
       position:fixed;
@@ -2349,6 +2611,39 @@
   </main>
 
 
+  <div
+    class="match-page"
+    id="matchPage"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="matchPageTitle"
+    hidden
+  >
+    <section class="match-page-shell">
+      <div class="match-page-toolbar">
+        <button
+          class="match-page-close"
+          id="matchPageClose"
+          type="button"
+          aria-label="Chiudi dettagli partita"
+        >
+          <i class="ph ph-x" aria-hidden="true"></i>
+        </button>
+
+        <div class="match-page-toolbar-title" id="matchPageTitle">
+          Dettagli partita
+        </div>
+
+        <div class="match-page-toolbar-spacer" aria-hidden="true"></div>
+      </div>
+
+      <div class="match-page-scroll" id="matchPageScroll">
+        <div id="matchPageContent"></div>
+      </div>
+    </section>
+  </div>
+
+
   <div class="team-sheet-backdrop" id="teamSheetBackdrop" hidden>
     <section
       class="team-sheet"
@@ -2400,6 +2695,10 @@
   const themeBtn = document.getElementById("themeBtn");
   const themeIcon = document.getElementById("themeIcon");
   const refreshBtn = document.getElementById("refreshBtn");
+  const matchPage = document.getElementById("matchPage");
+  const matchPageClose = document.getElementById("matchPageClose");
+  const matchPageScroll = document.getElementById("matchPageScroll");
+  const matchPageContent = document.getElementById("matchPageContent");
   const teamSheetBackdrop = document.getElementById("teamSheetBackdrop");
   const teamSheet = document.getElementById("teamSheet");
   const teamSheetContent = document.getElementById("teamSheetContent");
@@ -2426,6 +2725,10 @@
   let matchesRenderToken = 0;
   let teamSheetRequestToken = 0;
   let teamSheetScrollY = 0;
+  let matchPageRequestToken = 0;
+  let matchPageScrollY = 0;
+  let matchPageOpenId = "";
+  let matchPageModel = null;
 
   const expandedMatchDetails = new Set();
   const matchDetailTabs = new Map();
@@ -4276,21 +4579,10 @@
 
     if(home && away){
       const id = String(ev.id);
-      const kickoff = new Date(ev.date).getTime();
-      const minutesToKickoff = Number.isFinite(kickoff)
-        ? (kickoff - Date.now()) / 60000
-        : Number.POSITIVE_INFINITY;
-
-      const preMatchLineupWindow =
-        status === "pre" &&
-        minutesToKickoff <= 180 &&
-        minutesToKickoff >= -10;
-
+      // Match cards stay lightweight. Detailed ESPN data is loaded only
+      // after the user explicitly opens the Match Page (or if already cached).
       const shouldLoadDetails =
-        status === "live" ||
-        expandedMatchDetails.has(id) ||
-        matchDetailsCache.has(ev.id) ||
-        preMatchLineupWindow;
+        matchDetailsCache.has(ev.id);
 
       if(shouldLoadDetails){
         const details = await detailsFor(ev,home.id,away.id);
@@ -5421,6 +5713,237 @@
     </div>`;
   }
 
+  function findMatchEventById(id){
+    const wanted = String(id || "");
+
+    for(const ev of allEvents){
+      if(String(ev?.id || "") === wanted) return ev;
+    }
+
+    for(const evs of Object.values(rounds)){
+      const found = (evs || []).find(
+        ev=>String(ev?.id || "") === wanted
+      );
+      if(found) return found;
+    }
+
+    return null;
+  }
+
+  function matchPageSummaryHtml(m){
+    const statusClass =
+      m.status === "live"
+        ? "live"
+        : m.status === "done"
+          ? "done"
+          : "";
+
+    const scoreCenter = m.status === "pre"
+      ? `<div class="match-page-ko">${esc(timeLabel(m.date))}</div>`
+      : `<div class="match-page-score">${esc(m.home.score)}–${esc(m.away.score)}</div>`;
+
+    return `<div class="match-page-summary">
+      <div class="match-page-team">
+        ${m.home.logo
+          ? `<img src="${esc(m.home.logo)}" alt="" loading="eager">`
+          : ""
+        }
+        <div class="match-page-team-name">${esc(m.home.name)}</div>
+      </div>
+
+      <div class="match-page-scorebox">
+        ${scoreCenter}
+        <span class="match-page-status ${statusClass}">
+          ${esc(m.statusText)}
+        </span>
+      </div>
+
+      <div class="match-page-team">
+        ${m.away.logo
+          ? `<img src="${esc(m.away.logo)}" alt="" loading="eager">`
+          : ""
+        }
+        <div class="match-page-team-name">${esc(m.away.name)}</div>
+      </div>
+    </div>`;
+  }
+
+  function renderMatchPageModel(m,{loading=false}={}){
+    if(!m || !matchPageContent) return;
+
+    const id = String(m.id);
+    const defaultTab = m.status === "pre" ? "formations" : "events";
+    const activeDetailTab = matchDetailTabs.get(id) || defaultTab;
+
+    const timeline = (m.matchEvents || [])
+      .map((e,index)=>({...e,_sourceOrder:index}))
+      .sort((a,b)=>
+        eventMinuteValue(a.minute) - eventMinuteValue(b.minute) ||
+        a._sourceOrder - b._sourceOrder
+      );
+
+    const details = loading
+      ? `<div class="match-page-loading">
+          <div><div class="spinner"></div>Carico i dettagli…</div>
+        </div>`
+      : detailTabsHtml(m,timeline,activeDetailTab);
+
+    matchPageContent.innerHTML = `
+      ${matchPageSummaryHtml(m)}
+      ${details}
+    `;
+
+    if(!loading){
+      matchPageContent.querySelectorAll("[data-detail-tab]").forEach(btn=>{
+        btn.addEventListener("click",()=>{
+          const tab = String(btn.dataset.detailTab || "");
+          if(!["events","statistics","formations"].includes(tab)) return;
+
+          matchDetailTabs.set(id,tab);
+          renderMatchPageModel(m);
+        });
+      });
+    }
+  }
+
+  async function fullMatchModel(ev){
+    const comp = ev?.competitions?.[0];
+    const competitors = comp?.competitors || [];
+    const home =
+      competitors.find(x=>x.homeAway === "home") ||
+      competitors[0];
+
+    const away =
+      competitors.find(x=>x.homeAway === "away") ||
+      competitors[1];
+
+    if(home && away){
+      await detailsFor(ev,home.id,away.id);
+    }
+
+    return matchModel(ev);
+  }
+
+  function lockMatchPageScroll(){
+    matchPageScrollY = window.scrollY || window.pageYOffset || 0;
+
+    document.body.classList.add("match-page-open");
+    document.body.style.top = `-${matchPageScrollY}px`;
+    document.body.style.position = "fixed";
+    document.body.style.width = "100%";
+    document.body.style.left = "0";
+    document.body.style.right = "0";
+  }
+
+  function unlockMatchPageScroll(){
+    const y = matchPageScrollY || 0;
+
+    document.body.classList.remove("match-page-open");
+    document.body.style.top = "";
+    document.body.style.position = "";
+    document.body.style.width = "";
+    document.body.style.left = "";
+    document.body.style.right = "";
+
+    window.scrollTo(0,y);
+  }
+
+  function closeMatchPage(){
+    matchPageRequestToken++;
+    matchPageOpenId = "";
+    matchPageModel = null;
+
+    if(matchPage){
+      matchPage.hidden = true;
+    }
+
+    unlockMatchPageScroll();
+  }
+
+  async function openMatchPage(id){
+    const ev = findMatchEventById(id);
+    if(!ev) return;
+
+    const token = ++matchPageRequestToken;
+    matchPageOpenId = String(id);
+
+    const basicModel = await matchModel(ev);
+    if(token !== matchPageRequestToken) return;
+
+    matchPageModel = basicModel;
+    renderMatchPageModel(basicModel,{loading:true});
+
+    lockMatchPageScroll();
+    matchPage.hidden = false;
+    matchPageScroll.scrollTop = 0;
+
+    try{
+      const model = await fullMatchModel(ev);
+      if(
+        token !== matchPageRequestToken ||
+        matchPageOpenId !== String(id)
+      ){
+        return;
+      }
+
+      matchPageModel = model;
+      renderMatchPageModel(model);
+      matchPageScroll.scrollTop = 0;
+    }catch(_){
+      if(token !== matchPageRequestToken) return;
+
+      matchPageContent.innerHTML = `
+        ${matchPageSummaryHtml(basicModel)}
+        <div class="detail-message">
+          Dettagli partita non disponibili in questo momento.
+        </div>
+      `;
+    }
+  }
+
+  async function refreshOpenMatchPage(){
+    if(!matchPageOpenId || matchPage?.hidden) return;
+
+    const id = String(matchPageOpenId);
+    const ev = findMatchEventById(id);
+    if(!ev) return;
+
+    const selectedTab =
+      matchDetailTabs.get(id) ||
+      (matchPageModel?.status === "pre" ? "formations" : "events");
+
+    const scrollTop = matchPageScroll?.scrollTop || 0;
+
+    matchDetailsCache.delete(ev.id);
+    summaryCache.delete(ev.id);
+    cardPlaysCache.delete(String(ev.id));
+
+    try{
+      const model = await fullMatchModel(ev);
+
+      if(matchPageOpenId !== id || matchPage?.hidden) return;
+
+      matchPageModel = model;
+      matchDetailTabs.set(id,selectedTab);
+      renderMatchPageModel(model);
+      matchPageScroll.scrollTop = scrollTop;
+    }catch(_){}
+  }
+
+  function setupMatchPage(){
+    matchPageClose?.addEventListener("click",closeMatchPage);
+
+    document.addEventListener("keydown",event=>{
+      if(
+        event.key === "Escape" &&
+        matchPage &&
+        !matchPage.hidden
+      ){
+        closeMatchPage();
+      }
+    });
+  }
+
   function detailTabsHtml(m,timeline,activeDetailTab){
     const eventsActive = activeDetailTab === "events";
     const statisticsActive = activeDetailTab === "statistics";
@@ -5475,48 +5998,14 @@
       ? `<div class="ko">${esc(timeLabel(m.date))}</div>`
       : `<div class="score">${m.home.score}–${m.away.score}</div>`;
 
-    const statusClass = m.status === "live" ? "live" : m.status === "done" ? "done" : "";
-
-    const timeline = (m.matchEvents || [])
-      .map((e,index)=>({...e,_sourceOrder:index}))
-      .sort((a,b)=>
-        eventMinuteValue(a.minute) - eventMinuteValue(b.minute) ||
-        a._sourceOrder - b._sourceOrder
-      );
+    const statusClass =
+      m.status === "live"
+        ? "live"
+        : m.status === "done"
+          ? "done"
+          : "";
 
     const id = String(m.id);
-    const isFinished = m.status === "done";
-    const isLive = m.status === "live";
-    const isPre = m.status === "pre";
-    const lineupAvailable = hasLineupData(m.lineups);
-
-    // LIVE always stays open. Finished games are closed by default.
-    // Pre-match details appear only once ESPN has published a lineup.
-    const isExpanded =
-      isLive ||
-      expandedMatchDetails.has(id);
-
-    const defaultTab = isPre ? "formations" : "events";
-    const activeDetailTab = matchDetailTabs.get(id) || defaultTab;
-
-    let details = "";
-    let toggle = "";
-
-    if(isExpanded){
-      details = detailTabsHtml(m,timeline,activeDetailTab);
-    }
-
-    const canToggle = isFinished || (isPre && lineupAvailable);
-    if(canToggle){
-      toggle = `<button
-        class="events-toggle"
-        type="button"
-        data-details-toggle="${esc(id)}"
-        aria-expanded="${isExpanded ? "true" : "false"}"
-      >
-        ${isExpanded ? "Nascondi dettagli" : "Dettagli partita"}
-      </button>`;
-    }
 
     return `<article class="match ${esc(m.status)}" data-match-id="${esc(id)}">
       <div class="match-main">
@@ -5532,10 +6021,12 @@
           ${m.home.logo ? `<img src="${esc(m.home.logo)}" alt="" loading="lazy">` : ""}
           <div class="team-name">${esc(m.home.name)}</div>
         </button>
+
         <div class="scorebox">
           ${scoreCenter}
           <span class="status ${statusClass}">${esc(m.statusText)}</span>
         </div>
+
         <button
           class="team team-open"
           type="button"
@@ -5549,8 +6040,15 @@
           <div class="team-name">${esc(m.away.name)}</div>
         </button>
       </div>
-      ${details}
-      ${toggle}
+
+      <button
+        class="events-toggle"
+        type="button"
+        data-match-open="${esc(id)}"
+        aria-label="Apri dettagli ${esc(m.home.name)} ${esc(m.away.name)}"
+      >
+        Dettagli partita
+      </button>
     </article>`;
   }
 
@@ -5701,7 +6199,7 @@
       if(!startedInsideContent) return;
 
       blocked = !!target?.closest(
-        "button,a,input,select,textarea,[data-detail-tab],[data-details-toggle]"
+        "button,a,input,select,textarea,[data-detail-tab],[data-details-toggle],[data-match-open]"
       );
 
       if(blocked) return;
@@ -5868,29 +6366,11 @@
 
     setupTeamLinks();
 
-    content.querySelectorAll("[data-details-toggle]").forEach(btn=>{
+    content.querySelectorAll("[data-match-open]").forEach(btn=>{
       btn.addEventListener("click",()=>{
-        const id = String(btn.dataset.detailsToggle || "");
+        const id = String(btn.dataset.matchOpen || "");
         if(!id) return;
-
-        if(expandedMatchDetails.has(id)){
-          expandedMatchDetails.delete(id);
-        }else{
-          expandedMatchDetails.add(id);
-        }
-
-        renderMatches();
-      });
-    });
-
-    content.querySelectorAll("[data-detail-tab]").forEach(btn=>{
-      btn.addEventListener("click",()=>{
-        const id = String(btn.dataset.detailMatch || "");
-        const tab = String(btn.dataset.detailTab || "");
-        if(!id || !["events","statistics","formations"].includes(tab)) return;
-
-        matchDetailTabs.set(id,tab);
-        renderMatches();
+        openMatchPage(id);
       });
     });
 
@@ -7103,6 +7583,11 @@ document.querySelectorAll(".tab").forEach(btn=>{
         }
 
         await renderMatches();
+
+        if(matchPageOpenId){
+          await refreshOpenMatchPage();
+        }
+
         return;
       }
 
@@ -7124,6 +7609,7 @@ document.querySelectorAll(".tab").forEach(btn=>{
     try{
       setupRoundSwipe();
       setupThemeControl();
+      setupMatchPage();
       setupTeamSheet();
       clearLegacyUiState();
 
