@@ -17,7 +17,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Serie A Live">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="app-version" content="3.6.11">
+  <meta name="app-version" content="3.6.12">
   <script>
     (() => {
       const key = "serie-a-live-theme";
@@ -3037,6 +3037,7 @@
   let seasonStartDate = null;
   let seasonEndDate = null;
   let seasonHydrationTimer = null;
+  let calendarRoundByDate = new Map();
   let matchesRenderToken = 0;
   let teamSheetRequestToken = 0;
   let teamSheetScrollY = 0;
@@ -3379,16 +3380,68 @@
     return "pre";
   }
 
+  function buildCalendarRoundMap(calendar){
+    const dayMs = 86400000;
+
+    const days = [...new Set(
+      (calendar || [])
+        .map(value=>new Date(value))
+        .filter(d=>Number.isFinite(d.getTime()))
+        .map(d=>Date.UTC(
+          d.getUTCFullYear(),
+          d.getUTCMonth(),
+          d.getUTCDate()
+        ))
+    )].sort((a,b)=>a-b);
+
+    const map = new Map();
+    if(!days.length) return map;
+
+    let round = 1;
+    let previous = null;
+
+    for(const ms of days){
+      if(
+        previous !== null &&
+        (ms - previous) / dayMs >= 2
+      ){
+        round += 1;
+      }
+
+      const d = new Date(ms);
+      map.set(fmtDateKey(d),round);
+      previous = ms;
+    }
+
+    return map;
+  }
+
   function roundNumberFromEvent(ev){
     const candidates = [
       ev?.week?.number,
       ev?.competitions?.[0]?.week?.number,
       ev?.season?.week?.number
     ];
+
     for(const n of candidates){
       const x = Number(n);
       if(Number.isFinite(x) && x > 0) return x;
     }
+
+    // ESPN soccer events often omit week.number.
+    // Use the season calendar already included in the league response
+    // so a partial near-today load keeps the real matchday number.
+    const eventDate = new Date(ev?.date);
+    if(Number.isFinite(eventDate.getTime())){
+      const mapped = Number(
+        calendarRoundByDate.get(fmtDateKey(eventDate))
+      );
+
+      if(Number.isFinite(mapped) && mapped > 0){
+        return mapped;
+      }
+    }
+
     return null;
   }
 
@@ -3577,6 +3630,13 @@
 
     seasonStartDate = new Date(league.season.startDate);
     seasonEndDate = new Date(league.season.endDate);
+
+    // Build the real chronological matchday numbering immediately from
+    // ESPN's season calendar. This keeps partial first-paint data aligned
+    // with the actual Serie A round number.
+    calendarRoundByDate = buildCalendarRoundMap(
+      league?.calendar || []
+    );
 
     // First paint only needs the matchdays around today.
     // The entire season is hydrated later, in background.
