@@ -17,7 +17,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Serie A Live">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="app-version" content="3.6.12">
+  <meta name="app-version" content="3.6.13">
   <script>
     (() => {
       const key = "serie-a-live-theme";
@@ -1364,8 +1364,24 @@
       font-size:12px;
       display:none;
     }
+    .bottom-nav-layer{
+      position:fixed !important;
+      z-index:29;
+      left:0;
+      right:0;
+      bottom:0;
+      height:calc(84px + env(safe-area-inset-bottom));
+      pointer-events:none;
+      transform:translate3d(0,0,0);
+      -webkit-transform:translate3d(0,0,0);
+      backface-visibility:hidden;
+      -webkit-backface-visibility:hidden;
+      will-change:transform;
+      contain:layout paint;
+    }
+
     .bottom-nav-frost{
-      position:fixed;
+      position:absolute;
       z-index:29;
       pointer-events:none;
       left:max(10px,env(safe-area-inset-left));
@@ -1396,8 +1412,9 @@
     }
 
     .bottom-nav{
-      position:fixed;
+      position:absolute;
       z-index:30;
+      pointer-events:auto;
       left:max(12px,env(safe-area-inset-left));
       right:max(12px,env(safe-area-inset-right));
       bottom:calc(8px + env(safe-area-inset-bottom));
@@ -2973,9 +2990,10 @@
   </div>
 
 
-  <div class="bottom-nav-frost" aria-hidden="true"></div>
+  <div class="bottom-nav-layer" id="bottomNavLayer">
+    <div class="bottom-nav-frost" aria-hidden="true"></div>
 
-  <nav class="bottom-nav" aria-label="Navigazione principale">
+    <nav class="bottom-nav" aria-label="Navigazione principale">
     <button class="tab active" data-tab="matches">
       <span class="ico" aria-hidden="true"><i class="ph ph-soccer-ball"></i></span>
       <span>PARTITE</span>
@@ -2992,7 +3010,8 @@
       <span class="ico" aria-hidden="true"><i class="ph ph-sneaker"></i></span>
       <span>ASSIST</span>
     </button>
-  </nav>
+    </nav>
+  </div>
 
 <script>
 (() => {
