@@ -17,7 +17,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Serie A Live">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="app-version" content="3.6.3">
+  <meta name="app-version" content="3.6.4">
   <script>
     (() => {
       const key = "serie-a-live-theme";
@@ -403,6 +403,7 @@
       color:var(--muted);
       font-size:11.5px;
       font-weight:400;
+      line-height:1.2;
       margin-top:1px;
       white-space:nowrap;
       overflow:hidden;
@@ -422,8 +423,9 @@
     }
     .timeline-sub-out{
       color:#c4322b;
-      font-size:11px;
+      font-size:11.5px;
       font-weight:400;
+      line-height:1.2;
       margin-top:1px;
     }
     .timeline-sub-arrow{
@@ -578,14 +580,17 @@
       display:block;
       margin-top:1px;
       color:var(--muted);
-      font-size:11px;
-      font-weight:500;
+      font-size:11.5px;
+      font-weight:400;
       line-height:1.2;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
     }
 
     .timeline-event-note.var{
-      font-weight:750;
-      letter-spacing:.02em;
+      font-weight:400;
+      letter-spacing:0;
     }
 
     .timeline-event-note.danger{
@@ -633,7 +638,7 @@
 
     .second-yellow-cards{
       position:relative;
-      width:24px;
+      width:22px;
       height:23px;
       display:block;
     }
@@ -641,16 +646,17 @@
     .second-yellow-cards .event-card{
       position:absolute;
       top:3px;
+      transform:none;
     }
 
     .second-yellow-cards .event-card:first-child{
-      left:4px;
-      transform:rotate(-8deg);
+      left:2px;
+      z-index:1;
     }
 
     .second-yellow-cards .event-card:last-child{
-      left:10px;
-      transform:rotate(8deg);
+      left:9px;
+      z-index:2;
     }
 
     html.theme-dark .timeline-event-note.danger{
@@ -1774,11 +1780,11 @@
     .match-page-shell{
       box-sizing:border-box;
       width:min(100%,760px);
-      height:min(94dvh,860px);
+      height:min(96dvh,900px);
       display:flex;
       flex-direction:column;
       overflow:hidden;
-      background:var(--bg);
+      background:var(--card);
       border:1px solid var(--line);
       border-bottom:0;
       border-radius:24px 24px 0 0;
@@ -1854,7 +1860,7 @@
       overflow-y:auto;
       overscroll-behavior:contain;
       -webkit-overflow-scrolling:touch;
-      background:var(--bg);
+      background:var(--card);
     }
 
     .match-page-summary{
@@ -1862,9 +1868,9 @@
       grid-template-columns:minmax(0,1fr) 92px minmax(0,1fr);
       gap:10px;
       align-items:center;
-      padding:22px 18px 18px;
+      padding:16px 18px 20px;
       background:var(--card);
-      border-bottom:.5px solid var(--line);
+      border-bottom:0;
     }
 
     .match-page-team{
@@ -1877,8 +1883,8 @@
     }
 
     .match-page-team img{
-      width:46px;
-      height:46px;
+      width:50px;
+      height:50px;
       object-fit:contain;
       display:block;
       filter:drop-shadow(0 2px 6px rgba(16,24,40,.08));
@@ -1943,23 +1949,46 @@
       color:#067647;
     }
 
+    .match-page .match-details{
+      padding:0 14px calc(20px + env(safe-area-inset-bottom));
+      background:var(--card);
+    }
+
     .match-page .detail-tabs{
       position:sticky;
       top:0;
       z-index:7;
-      padding-top:10px;
-      background:rgba(244,246,248,.96);
-      backdrop-filter:blur(18px);
-      -webkit-backdrop-filter:blur(18px);
+      gap:3px;
+      margin:0;
+      padding:3px;
+      border:0;
+      border-radius:13px;
+      background:var(--surface-soft);
+      backdrop-filter:none;
+      -webkit-backdrop-filter:none;
     }
 
-    .match-page .match-details{
-      padding:0 14px calc(20px + env(safe-area-inset-bottom));
-      background:var(--bg);
+    .match-page .detail-tab{
+      min-height:36px;
+      padding:8px 4px;
+      border-radius:10px;
+      font-size:10px;
+      font-weight:750;
+    }
+
+    .match-page .detail-tab.active{
+      background:var(--card);
+      box-shadow:
+        0 1px 2px rgba(16,24,40,.08),
+        0 0 0 .5px var(--line);
+    }
+
+    .match-page .detail-tab.active::after{
+      display:none;
     }
 
     .match-page .detail-panel{
-      margin-top:12px;
+      margin-top:14px;
       padding-bottom:8px;
     }
 
@@ -1987,7 +2016,14 @@
     }
 
     html.theme-dark .match-page .detail-tabs{
-      background:rgba(21,26,33,.96);
+      background:var(--surface-soft);
+    }
+
+    html.theme-dark .match-page .detail-tab.active{
+      background:var(--card);
+      box-shadow:
+        0 1px 2px rgba(0,0,0,.22),
+        0 0 0 .5px var(--line);
     }
 
     html.theme-dark .match-page-status.live{
@@ -4773,17 +4809,12 @@
   }
 
   function varMonitorIcon(state="neutral"){
-    const toneClass =
-      state === "positive"
-        ? "positive"
-        : (state === "negative" ? "negative" : "");
-
     const label =
       state === "positive"
-        ? "Rigore assegnato"
-        : (state === "negative" ? "Rigore negato" : "Decisione VAR");
+        ? "Decisione positiva"
+        : (state === "negative" ? "Decisione negativa" : "Decisione VAR");
 
-    return `<i class="ph ph-monitor event-ph ${toneClass}" aria-label="${label}"></i>`;
+    return `<i class="ph ph-monitor event-ph" aria-label="${label}"></i>`;
   }
 
   function disallowedGoalIcon(){
@@ -4794,9 +4825,9 @@
   }
 
   function secondYellowIcon(){
-    return `<span class="second-yellow-cards" aria-label="Secondo giallo">
+    return `<span class="second-yellow-cards" aria-label="Secondo giallo ed espulsione">
       <span class="event-card yellow" aria-hidden="true"></span>
-      <span class="event-card yellow" aria-hidden="true"></span>
+      <span class="event-card red" aria-hidden="true"></span>
     </span>`;
   }
 
@@ -4840,7 +4871,7 @@
     if(e.kind === "penmiss") return missedPenaltyIcon();
 
     if(e.kind === "injury"){
-      return `<span class="injury-cross" aria-label="Infortunio"></span>`;
+      return `<i class="ph ph-plus event-ph injury" aria-label="Infortunio"></i>`;
     }
     if(e.kind === "secondyellow") return secondYellowIcon();
     if(e.kind === "red") return `<span class="event-card red" aria-label="Cartellino rosso"></span>`;
@@ -4865,22 +4896,19 @@
     if(e.kind === "goaldisallowed"){
       const player = e.player && e.player !== "—"
         ? `<div class="timeline-main">${esc(shortPlayerName(e.player))}</div>`
-        : `<div class="timeline-main">Gol annullato</div>`;
+        : `<div class="timeline-main">Decisione VAR</div>`;
 
       return `${player}
         <span class="timeline-event-note danger">Gol annullato</span>`;
     }
 
     if(e.kind === "varnogoal"){
-      return `<div class="timeline-main">Gol annullato</div>`;
+      return `<div class="timeline-main">Decisione VAR</div>
+        <span class="timeline-event-note danger">Gol annullato</span>`;
     }
 
     if(e.kind === "vargoal"){
-      const player = e.player
-        ? `<div class="timeline-main">${esc(shortPlayerName(e.player))}</div>`
-        : `<div class="timeline-main">Gol convalidato</div>`;
-
-      return `${player}
+      return `<div class="timeline-main">Decisione VAR</div>
         <span class="timeline-event-note success">Gol convalidato</span>`;
     }
 
@@ -4889,11 +4917,13 @@
     }
 
     if(e.kind === "penaltyawarded" || e.kind === "varpenalty"){
-      return `<div class="timeline-main">Rigore assegnato</div>`;
+      return `<div class="timeline-main">Decisione VAR</div>
+        <span class="timeline-event-note success">Rigore assegnato</span>`;
     }
 
     if(e.kind === "varnopenalty"){
-      return `<div class="timeline-main">${e.penaltyRevoked ? "Rigore revocato" : "Rigore negato"}</div>`;
+      return `<div class="timeline-main">Decisione VAR</div>
+        <span class="timeline-event-note danger">${e.penaltyRevoked ? "Rigore revocato" : "Rigore negato"}</span>`;
     }
 
     if(e.kind === "secondyellow"){
