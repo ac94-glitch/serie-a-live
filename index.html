@@ -17,7 +17,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Serie A Live">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="app-version" content="3.6.4">
+  <meta name="app-version" content="3.6.5">
   <script>
     (() => {
       const key = "serie-a-live-theme";
@@ -497,26 +497,28 @@
     }
 
     .substitution-icon{
-      position:relative;
       width:24px;
-      height:24px;
+      height:20px;
+      display:grid;
+      place-items:center;
+    }
+    .substitution-icon svg{
       display:block;
+      width:22px;
+      height:18px;
+      overflow:visible;
     }
-    .substitution-icon .sub-arrow{
-      position:absolute;
-      top:50%;
-      transform:translateY(-50%);
-      font-size:17px;
-      line-height:1;
-      font-weight:400;
+    .substitution-icon .sub-line{
+      fill:none;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+      stroke-width:2.3;
     }
-    .substitution-icon .sub-arrow.out{
-      left:0;
-      color:#c4322b;
+    .substitution-icon .sub-line.in{
+      stroke:#168447;
     }
-    .substitution-icon .sub-arrow.in{
-      right:0;
-      color:#168447;
+    .substitution-icon .sub-line.out{
+      stroke:#c4322b;
     }
 
     .injury-cross{
@@ -1950,7 +1952,7 @@
     }
 
     .match-page .match-details{
-      padding:0 14px calc(20px + env(safe-area-inset-bottom));
+      padding:10px 14px calc(20px + env(safe-area-inset-bottom));
       background:var(--card);
     }
 
@@ -1960,18 +1962,19 @@
       z-index:7;
       gap:3px;
       margin:0;
-      padding:3px;
-      border:0;
-      border-radius:13px;
+      padding:4px;
+      border:1px solid var(--line);
+      border-radius:15px;
       background:var(--surface-soft);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.28);
       backdrop-filter:none;
       -webkit-backdrop-filter:none;
     }
 
     .match-page .detail-tab{
-      min-height:36px;
+      min-height:38px;
       padding:8px 4px;
-      border-radius:10px;
+      border-radius:11px;
       font-size:10px;
       font-weight:750;
     }
@@ -1980,7 +1983,7 @@
       background:var(--card);
       box-shadow:
         0 1px 2px rgba(16,24,40,.08),
-        0 0 0 .5px var(--line);
+        0 0 0 1px rgba(16,24,40,.04);
     }
 
     .match-page .detail-tab.active::after{
@@ -1988,7 +1991,7 @@
     }
 
     .match-page .detail-panel{
-      margin-top:14px;
+      margin-top:12px;
       padding-bottom:8px;
     }
 
@@ -2017,13 +2020,14 @@
 
     html.theme-dark .match-page .detail-tabs{
       background:var(--surface-soft);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
     }
 
     html.theme-dark .match-page .detail-tab.active{
       background:var(--card);
       box-shadow:
         0 1px 2px rgba(0,0,0,.22),
-        0 0 0 .5px var(--line);
+        0 0 0 1px rgba(255,255,255,.03);
     }
 
     html.theme-dark .match-page-status.live{
@@ -4833,8 +4837,12 @@
 
   function substitutionIcon(){
     return `<span class="substitution-icon" aria-label="Sostituzione">
-      <i class="ph ph-arrow-left sub-arrow out" aria-hidden="true"></i>
-      <i class="ph ph-arrow-right sub-arrow in" aria-hidden="true"></i>
+      <svg viewBox="0 0 22 18" aria-hidden="true" focusable="false">
+        <path class="sub-line in" d="M2 5.5H16"></path>
+        <path class="sub-line in" d="M12.5 2.5L16.5 5.5L12.5 8.5"></path>
+        <path class="sub-line out" d="M20 12.5H6"></path>
+        <path class="sub-line out" d="M9.5 9.5L5.5 12.5L9.5 15.5"></path>
+      </svg>
     </span>`;
   }
 
