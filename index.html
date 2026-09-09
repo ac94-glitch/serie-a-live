@@ -17,7 +17,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Serie A Live">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="app-version" content="3.6.1">
+  <meta name="app-version" content="3.6.3">
   <script>
     (() => {
       const key = "serie-a-live-theme";
@@ -459,7 +459,7 @@
     }
     .event-ph{
       display:block;
-      font-size:21px;
+      font-size:20px;
       line-height:1;
       color:#344054;
       font-weight:400;
@@ -470,10 +470,14 @@
     .event-ph.pen-saved{
       color:#344054;
     }
-
+    .event-ph.positive{
+      color:#168447;
+    }
+    .event-ph.negative,
     .event-ph.injury{
       color:#c4322b;
     }
+
     .event-card{
       display:block;
       width:11px;
@@ -489,11 +493,53 @@
       background:#d92d20;
       border:1px solid #b42318;
     }
-    .substitution-ph{
-      font-size:21px;
+
+    .substitution-icon{
+      position:relative;
+      width:24px;
+      height:24px;
+      display:block;
+    }
+    .substitution-icon .sub-arrow{
+      position:absolute;
+      top:50%;
+      transform:translateY(-50%);
+      font-size:17px;
       line-height:1;
-      color:#667085;
       font-weight:400;
+    }
+    .substitution-icon .sub-arrow.out{
+      left:0;
+      color:#c4322b;
+    }
+    .substitution-icon .sub-arrow.in{
+      right:0;
+      color:#168447;
+    }
+
+    .injury-cross{
+      position:relative;
+      width:24px;
+      height:24px;
+      display:block;
+    }
+    .injury-cross::before,
+    .injury-cross::after{
+      content:"";
+      position:absolute;
+      left:50%;
+      top:50%;
+      transform:translate(-50%,-50%);
+      background:#c4322b;
+      border-radius:2px;
+    }
+    .injury-cross::before{
+      width:15px;
+      height:4px;
+    }
+    .injury-cross::after{
+      width:4px;
+      height:15px;
     }
 
     .assist-icon{
@@ -559,7 +605,7 @@
     }
 
     .event-overlay-wrap > .event-ph{
-      font-size:21px;
+      font-size:20px;
     }
 
     .event-overlay-mark{
@@ -587,7 +633,7 @@
 
     .second-yellow-cards{
       position:relative;
-      width:22px;
+      width:24px;
       height:23px;
       display:block;
     }
@@ -597,14 +643,14 @@
       top:3px;
     }
 
-    .second-yellow-cards .event-card.yellow{
-      left:2px;
-      transform:rotate(-7deg);
+    .second-yellow-cards .event-card:first-child{
+      left:4px;
+      transform:rotate(-8deg);
     }
 
-    .second-yellow-cards .event-card.red{
-      right:2px;
-      transform:rotate(7deg);
+    .second-yellow-cards .event-card:last-child{
+      left:10px;
+      transform:rotate(8deg);
     }
 
     html.theme-dark .timeline-event-note.danger{
@@ -1693,7 +1739,7 @@
 
 
 
-    /* V3.6 — Match Page */
+    /* V3.6.3 — Match Page full sheet */
     body.match-page-open{
       position:fixed;
       width:100%;
@@ -1712,8 +1758,13 @@
       position:fixed;
       inset:0;
       z-index:95;
-      display:block;
-      background:var(--bg);
+      display:flex;
+      align-items:flex-end;
+      justify-content:center;
+      padding:0;
+      background:rgba(16,24,40,.28);
+      backdrop-filter:blur(4px);
+      -webkit-backdrop-filter:blur(4px);
     }
 
     .match-page[hidden]{
@@ -1722,23 +1773,36 @@
 
     .match-page-shell{
       box-sizing:border-box;
-      width:100%;
-      height:100dvh;
+      width:min(100%,760px);
+      height:min(94dvh,860px);
       display:flex;
       flex-direction:column;
-      padding-top:env(safe-area-inset-top);
-      padding-bottom:env(safe-area-inset-bottom);
+      overflow:hidden;
       background:var(--bg);
+      border:1px solid var(--line);
+      border-bottom:0;
+      border-radius:24px 24px 0 0;
+      box-shadow:0 -18px 48px rgba(16,24,40,.18);
+      animation:teamSheetIn .22s cubic-bezier(.2,.75,.25,1);
+    }
+
+    .match-page-handle{
+      width:38px;
+      height:5px;
+      margin:10px auto 6px;
+      border-radius:999px;
+      background:#d0d5dd;
+      flex:0 0 auto;
     }
 
     .match-page-toolbar{
       flex:0 0 auto;
-      min-height:50px;
+      min-height:48px;
       display:grid;
-      grid-template-columns:40px minmax(0,1fr) 40px;
+      grid-template-columns:36px minmax(0,1fr) 36px;
       align-items:center;
       gap:8px;
-      padding:4px 12px 5px;
+      padding:2px 14px 8px;
       border-bottom:.5px solid var(--line);
       background:rgba(244,246,248,.94);
       backdrop-filter:blur(18px) saturate(130%);
@@ -1761,16 +1825,17 @@
 
     .match-page-close{
       appearance:none;
-      width:36px;
-      height:36px;
+      width:34px;
+      height:34px;
       display:grid;
       place-items:center;
       padding:0;
       border:1px solid var(--line);
-      border-radius:12px;
+      border-radius:11px;
       background:var(--surface-soft);
       color:var(--ink);
       -webkit-tap-highlight-color:transparent;
+      justify-self:end;
     }
 
     .match-page-close i{
@@ -1779,8 +1844,8 @@
     }
 
     .match-page-toolbar-spacer{
-      width:36px;
-      height:36px;
+      width:34px;
+      height:34px;
     }
 
     .match-page-scroll{
@@ -1807,49 +1872,45 @@
       display:flex;
       flex-direction:column;
       align-items:center;
-      justify-content:center;
       gap:7px;
       text-align:center;
     }
 
     .match-page-team img{
-      width:54px;
-      height:54px;
+      width:46px;
+      height:46px;
       object-fit:contain;
       display:block;
+      filter:drop-shadow(0 2px 6px rgba(16,24,40,.08));
     }
 
     .match-page-team-name{
-      width:100%;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      white-space:nowrap;
       font-size:13px;
       line-height:1.15;
       font-weight:850;
+      letter-spacing:-.01em;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width:100%;
     }
 
     .match-page-scorebox{
-      min-width:0;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
-      gap:6px;
       text-align:center;
+      min-width:0;
     }
 
     .match-page-score{
       font-size:34px;
-      line-height:.95;
-      font-weight:900;
-      letter-spacing:-.045em;
+      line-height:1;
+      font-weight:950;
+      letter-spacing:-.04em;
       font-variant-numeric:tabular-nums;
-      white-space:nowrap;
     }
 
     .match-page-ko{
-      font-size:22px;
+      color:var(--ink);
+      font-size:20px;
       line-height:1;
       font-weight:900;
       font-variant-numeric:tabular-nums;
@@ -1860,54 +1921,64 @@
       align-items:center;
       justify-content:center;
       min-height:22px;
-      padding:4px 8px;
+      margin-top:8px;
+      padding:0 9px;
       border-radius:999px;
       background:var(--surface-soft);
       color:var(--muted);
-      font-size:9px;
-      line-height:1;
-      font-weight:850;
-      letter-spacing:.05em;
+      font-size:10px;
+      font-weight:800;
+      letter-spacing:.04em;
       text-transform:uppercase;
       white-space:nowrap;
     }
 
     .match-page-status.live{
-      background:#fff0f0;
-      color:#d92d20;
+      background:rgba(217,45,32,.1);
+      color:#b42318;
     }
 
     .match-page-status.done{
-      background:#ecfdf3;
-      color:#168447;
+      background:rgba(6,118,71,.1);
+      color:#067647;
     }
 
     .match-page .detail-tabs{
       position:sticky;
       top:0;
-      z-index:6;
-      background:rgba(255,255,255,.96);
-      backdrop-filter:blur(16px) saturate(130%);
-      -webkit-backdrop-filter:blur(16px) saturate(130%);
+      z-index:7;
+      padding-top:10px;
+      background:rgba(244,246,248,.96);
+      backdrop-filter:blur(18px);
+      -webkit-backdrop-filter:blur(18px);
     }
 
     .match-page .match-details{
-      border-top:0;
-      background:var(--surface-soft);
+      padding:0 14px calc(20px + env(safe-area-inset-bottom));
+      background:var(--bg);
     }
 
     .match-page .detail-panel{
-      min-height:260px;
-      padding-bottom:20px;
+      margin-top:12px;
+      padding-bottom:8px;
     }
 
     .match-page-loading{
-      min-height:300px;
-      display:grid;
-      place-items:center;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:180px;
       color:var(--muted);
-      font-size:12px;
+      font-size:13px;
       font-weight:700;
+    }
+
+    html.theme-dark .match-page{
+      background:rgba(7,10,14,.42);
+    }
+
+    html.theme-dark .match-page-handle{
+      background:#445164;
     }
 
     html.theme-dark .match-page-toolbar{
@@ -1931,27 +2002,15 @@
 
     @media(min-width:650px){
       .match-page{
-        display:grid;
-        place-items:center;
+        align-items:center;
         padding:18px;
-        background:rgba(16,24,40,.28);
-        backdrop-filter:blur(5px);
-        -webkit-backdrop-filter:blur(5px);
-      }
-
-      .match-page[hidden]{
-        display:none;
       }
 
       .match-page-shell{
-        width:min(640px,100%);
-        height:min(860px,calc(100dvh - 36px));
-        padding-top:0;
-        padding-bottom:0;
-        border:1px solid var(--line);
+        width:min(680px,100%);
+        height:min(92dvh,900px);
         border-radius:24px;
-        overflow:hidden;
-        box-shadow:0 24px 70px rgba(16,24,40,.24);
+        border-bottom:1px solid var(--line);
       }
     }
 
@@ -2639,7 +2698,15 @@
     hidden
   >
     <section class="match-page-shell">
+      <div class="match-page-handle" aria-hidden="true"></div>
+
       <div class="match-page-toolbar">
+        <div class="match-page-toolbar-spacer" aria-hidden="true"></div>
+
+        <div class="match-page-toolbar-title" id="matchPageTitle">
+          Dettagli partita
+        </div>
+
         <button
           class="match-page-close"
           id="matchPageClose"
@@ -2648,12 +2715,6 @@
         >
           <i class="ph ph-x" aria-hidden="true"></i>
         </button>
-
-        <div class="match-page-toolbar-title" id="matchPageTitle">
-          Dettagli partita
-        </div>
-
-        <div class="match-page-toolbar-spacer" aria-hidden="true"></div>
       </div>
 
       <div class="match-page-scroll" id="matchPageScroll">
@@ -4409,13 +4470,22 @@
     return null;
   }
 
-  function formatMatchStat(value,isPercent=false){
+  function formatMatchStat(value,isPercent=false,decimals=1){
     if(!Number.isFinite(value)) return "—";
 
-    const rounded = Math.round(value * 10) / 10;
-    const display = Number.isInteger(rounded)
-      ? String(rounded)
-      : rounded.toFixed(1).replace(".",",");
+    const factor = 10 ** decimals;
+    const rounded = Math.round(value * factor) / factor;
+
+    let display;
+    if(decimals <= 0){
+      display = String(Math.round(rounded));
+    }else{
+      display = rounded
+        .toFixed(decimals)
+        .replace(".",",")
+        .replace(/,0+$/,"")
+        .replace(/(,\d*?)0+$/,"$1");
+    }
 
     return isPercent ? `${display}%` : display;
   }
@@ -4430,6 +4500,18 @@
         label:"Possesso",
         aliases:["possessionPct","possessionPercentage","possession"],
         percent:true
+      },
+      {
+        key:"expectedGoals",
+        label:"xG",
+        aliases:[
+          "expectedGoals",
+          "expectedGoalsFor",
+          "expectedGoalsTotal",
+          "xG",
+          "xg"
+        ],
+        decimals:2
       },
       {
         key:"shots",
@@ -4494,8 +4576,16 @@
         label:def.label,
         homeValue:h,
         awayValue:a,
-        homeDisplay:formatMatchStat(h,!!def.percent),
-        awayDisplay:formatMatchStat(a,!!def.percent)
+        homeDisplay:formatMatchStat(
+          h,
+          !!def.percent,
+          Number.isFinite(def.decimals) ? def.decimals : 1
+        ),
+        awayDisplay:formatMatchStat(
+          a,
+          !!def.percent,
+          Number.isFinite(def.decimals) ? def.decimals : 1
+        )
       });
     }
 
@@ -4682,26 +4772,18 @@
     return `<i class="ph ph-hand event-ph pen-saved" aria-label="Rigore parato"></i>`;
   }
 
-  function varMonitorIcon(mark=""){
-    if(mark === "accept"){
-      return `<span class="event-overlay-wrap" aria-label="Decisione VAR">
-        <i class="ph ph-monitor event-ph" aria-hidden="true"></i>
-        <i class="ph ph-check event-overlay-mark accept" aria-hidden="true"></i>
-      </span>`;
-    }
+  function varMonitorIcon(state="neutral"){
+    const toneClass =
+      state === "positive"
+        ? "positive"
+        : (state === "negative" ? "negative" : "");
 
-    return `<i class="ph ph-monitor event-ph" aria-label="VAR"></i>`;
-  }
+    const label =
+      state === "positive"
+        ? "Rigore assegnato"
+        : (state === "negative" ? "Rigore negato" : "Decisione VAR");
 
-  function whistleIcon(mark=""){
-    if(mark === "reject"){
-      return `<span class="event-overlay-wrap" aria-label="Rigore non assegnato">
-        <i class="ph ph-whistle event-ph" aria-hidden="true"></i>
-        <i class="ph ph-x event-overlay-mark reject" aria-hidden="true"></i>
-      </span>`;
-    }
-
-    return `<i class="ph ph-whistle event-ph" aria-label="Rigore"></i>`;
+    return `<i class="ph ph-monitor event-ph ${toneClass}" aria-label="${label}"></i>`;
   }
 
   function disallowedGoalIcon(){
@@ -4712,17 +4794,17 @@
   }
 
   function secondYellowIcon(){
-    return `<span class="second-yellow-cards" aria-label="Secondo giallo ed espulsione">
+    return `<span class="second-yellow-cards" aria-label="Secondo giallo">
       <span class="event-card yellow" aria-hidden="true"></span>
-      <span class="event-card red" aria-hidden="true"></span>
+      <span class="event-card yellow" aria-hidden="true"></span>
     </span>`;
   }
 
   function substitutionIcon(){
-    return `<i
-      class="ph ph-arrows-left-right substitution-ph"
-      aria-label="Sostituzione"
-    ></i>`;
+    return `<span class="substitution-icon" aria-label="Sostituzione">
+      <i class="ph ph-arrow-left sub-arrow out" aria-hidden="true"></i>
+      <i class="ph ph-arrow-right sub-arrow in" aria-hidden="true"></i>
+    </span>`;
   }
 
   function assistPassIcon(){
@@ -4739,7 +4821,7 @@
     }
 
     if(e.kind === "vargoal"){
-      return varMonitorIcon("accept");
+      return varMonitorIcon("positive");
     }
 
     if(e.kind === "varreview"){
@@ -4747,21 +4829,18 @@
     }
 
     if(e.kind === "penaltyawarded" || e.kind === "varpenalty"){
-      return whistleIcon();
+      return varMonitorIcon("positive");
     }
 
     if(e.kind === "varnopenalty"){
-      return whistleIcon("reject");
+      return varMonitorIcon("negative");
     }
 
     if(e.kind === "pensaved") return savedPenaltyIcon();
     if(e.kind === "penmiss") return missedPenaltyIcon();
 
     if(e.kind === "injury"){
-      return `<i
-        class="ph ph-first-aid-kit event-ph injury"
-        aria-label="Infortunio"
-      ></i>`;
+      return `<span class="injury-cross" aria-label="Infortunio"></span>`;
     }
     if(e.kind === "secondyellow") return secondYellowIcon();
     if(e.kind === "red") return `<span class="event-card red" aria-label="Cartellino rosso"></span>`;
@@ -4806,20 +4885,15 @@
     }
 
     if(e.kind === "varreview"){
-      return `<div class="timeline-main">Controllo VAR</div>`;
+      return `<div class="timeline-main">Decisione VAR</div>`;
     }
 
     if(e.kind === "penaltyawarded" || e.kind === "varpenalty"){
-      const first = e.player
-        ? `<div class="timeline-main">${esc(shortPlayerName(e.player))}</div>`
-        : `<div class="timeline-main">Rigore assegnato</div>`;
-
-      return `${first}
-        ${e.player ? `<span class="timeline-event-note">Rigore assegnato</span>` : ""}`;
+      return `<div class="timeline-main">Rigore assegnato</div>`;
     }
 
     if(e.kind === "varnopenalty"){
-      return `<div class="timeline-main">${e.penaltyRevoked ? "Rigore revocato" : "Nessun rigore"}</div>`;
+      return `<div class="timeline-main">${e.penaltyRevoked ? "Rigore revocato" : "Rigore negato"}</div>`;
     }
 
     if(e.kind === "secondyellow"){
@@ -4827,19 +4901,30 @@
         <span class="timeline-event-note danger">Secondo giallo</span>`;
     }
 
+    if(e.kind === "penmiss"){
+      return `<div class="timeline-main">${esc(shortPlayerName(e.player))}</div>
+        <span class="timeline-event-note danger">Rigore sbagliato</span>`;
+    }
+
+    if(e.kind === "pensaved"){
+      return `<div class="timeline-main">${esc(shortPlayerName(e.player))}</div>
+        <span class="timeline-event-note">Rigore parato</span>`;
+    }
+
     const assist = e.kind === "goal" && e.assist && !e.ownGoal
       ? `<span class="timeline-assist">${assistPassIcon()}${esc(shortPlayerName(e.assist))}</span>`
       : "";
 
+    const note = e.kind === "goal" && e.penalty
+      ? `<span class="timeline-event-note">Rigore</span>`
+      : "";
+
     const og = e.ownGoal ? " (OG)" : "";
-    return `<div class="timeline-main">${esc(shortPlayerName(e.player) + og)}</div>${assist}`;
+    return `<div class="timeline-main">${esc(shortPlayerName(e.player) + og)}</div>${note}${assist}`;
   }
 
   function eventMinuteHtml(e){
-    let tag = "";
-    if(e.kind === "goal" && e.penalty) tag = " (Rig.)";
-    if(e.kind === "penmiss" || e.kind === "pensaved") tag = " (Rig.)";
-    return `${esc(e.minute || "")}${esc(tag)}`;
+    return `${esc(e.minute || "")}`;
   }
 
   function eventBaseMinute(minute){
@@ -4948,10 +5033,7 @@
       String(m.statusText || "").toLowerCase() === "intervallo";
 
     const secondHtml = secondHalf.length
-      ? `<div class="timeline-period second">
-          <span>2° TEMPO</span>
-        </div>
-        ${timelineRowsHtml(secondHalf)}`
+      ? timelineRowsHtml(secondHalf)
       : "";
 
     const intervalHtml = hasReachedHalftime
@@ -4966,10 +5048,7 @@
       : "";
 
     const firstHtml = firstHalf.length
-      ? `<div class="timeline-period">
-          <span>1° TEMPO</span>
-        </div>
-        ${timelineRowsHtml(firstHalf)}`
+      ? timelineRowsHtml(firstHalf)
       : "";
 
     // LIVE-first reading: newest events at the top.
