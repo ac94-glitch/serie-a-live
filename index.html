@@ -15,9 +15,10 @@
   <link rel="preconnect" href="https://sports.core.api.espn.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" id="statusBarStyle" content="default">
   <meta name="apple-mobile-web-app-title" content="Serie A Live">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="app-version" content="3.6.13">
+  <meta name="app-version" content="3.6.15">
   <script>
     (() => {
       const key = "serie-a-live-theme";
@@ -37,8 +38,16 @@
       );
       document.documentElement.style.colorScheme = theme;
 
+      const dark = theme === "dark";
+      const systemColor = dark ? "#0b0f14" : "#f4f6f8";
+
       const meta = document.getElementById("themeColor");
-      if (meta) meta.content = theme === "dark" ? "#0b0f14" : "#f4f6f8";
+      if (meta) meta.content = systemColor;
+
+      const statusMeta = document.getElementById("statusBarStyle");
+      if (statusMeta) statusMeta.content = dark ? "black" : "default";
+
+      document.documentElement.style.backgroundColor = systemColor;
     })();
   </script>
   <style>
@@ -69,7 +78,7 @@
       --ui-soft-shadow:0 1px 2px rgba(16,24,40,.05);
     }
     *{box-sizing:border-box;touch-action:manipulation}
-    html{-webkit-text-size-adjust:100%}
+    html{-webkit-text-size-adjust:100%;background:var(--bg)}
     body{
       margin:0;
       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
@@ -1377,7 +1386,7 @@
       backface-visibility:hidden;
       -webkit-backface-visibility:hidden;
       will-change:transform;
-      contain:layout paint;
+      overflow:visible;
     }
 
     .bottom-nav-frost{
@@ -1437,17 +1446,13 @@
       border:1px solid rgba(255,255,255,.56);
       border-radius:32px;
 
-      /* stronger frosted refraction: content remains visible but loses focus */
-      backdrop-filter:
-        blur(26px)
-        saturate(165%)
-        brightness(104%)
-        contrast(96%);
-      -webkit-backdrop-filter:
-        blur(26px)
-        saturate(165%)
-        brightness(104%)
-        contrast(96%);
+      /* iOS overscroll stability: blur stays on the frost layer only */
+      backdrop-filter:none;
+      -webkit-backdrop-filter:none;
+      transform:translate3d(0,0,0);
+      -webkit-transform:translate3d(0,0,0);
+      backface-visibility:hidden;
+      -webkit-backface-visibility:hidden;
 
       box-shadow:
         0 11px 32px rgba(16,24,40,.14),
@@ -1515,6 +1520,10 @@
       transition:
         color .20s ease,
         transform .16s ease;
+      transform:translate3d(0,0,0);
+      -webkit-transform:translate3d(0,0,0);
+      backface-visibility:hidden;
+      -webkit-backface-visibility:hidden;
     }
 
     /* selected Liquid Glass lens */
@@ -1535,8 +1544,8 @@
       border:1px solid rgba(255,255,255,.98);
       outline:1px solid rgba(60,60,67,.09);
       outline-offset:-1px;
-      backdrop-filter:blur(18px) saturate(150%) brightness(110%);
-      -webkit-backdrop-filter:blur(18px) saturate(150%) brightness(110%);
+      backdrop-filter:none;
+      -webkit-backdrop-filter:none;
       box-shadow:
         0 5px 16px rgba(16,24,40,.15),
         0 1px 4px rgba(16,24,40,.08),
@@ -1558,6 +1567,10 @@
       display:grid;
       place-items:center;
       line-height:1;
+      transform:translate3d(0,0,0);
+      -webkit-transform:translate3d(0,0,0);
+      backface-visibility:hidden;
+      -webkit-backface-visibility:hidden;
       transition:
         transform .20s cubic-bezier(.2,.8,.2,1),
         color .20s ease;
@@ -1568,6 +1581,11 @@
       font-size:22px;
       line-height:1;
       font-weight:400;
+    }
+
+    .tab > span{
+      position:relative;
+      z-index:2;
     }
 
     .tab.active{
@@ -3137,6 +3155,39 @@
     themeBtn.setAttribute("title",label);
   }
 
+  function syncIOSSystemChrome(theme){
+    const dark = theme === "dark";
+    const systemColor = dark ? "#0b0f14" : "#f4f6f8";
+    const statusStyle = dark ? "black" : "default";
+
+    const sync = ()=>{
+      const themeMeta = document.getElementById("themeColor");
+      if(themeMeta){
+        themeMeta.setAttribute("content",systemColor);
+      }
+
+      const statusMeta = document.getElementById("statusBarStyle");
+      if(statusMeta){
+        statusMeta.setAttribute("content",statusStyle);
+      }
+
+      document.documentElement.style.backgroundColor = systemColor;
+
+      if(document.body){
+        document.body.style.backgroundColor = systemColor;
+      }
+    };
+
+    sync();
+
+    // Safari/PWA sometimes keeps the status-bar snapshot from the previous
+    // frame. Re-apply after style/layout commits so iOS re-reads the metadata.
+    requestAnimationFrame(()=>{
+      sync();
+      setTimeout(sync,80);
+    });
+  }
+
   function applyTheme(theme,{persist=false}={}){
     const dark = theme === "dark";
 
@@ -3144,10 +3195,7 @@
     document.documentElement.classList.toggle("theme-light",!dark);
     document.documentElement.style.colorScheme = dark ? "dark" : "light";
 
-    const meta = document.getElementById("themeColor");
-    if(meta){
-      meta.content = dark ? "#0b0f14" : "#f4f6f8";
-    }
+    syncIOSSystemChrome(dark ? "dark" : "light");
 
     if(persist){
       try{
