@@ -2918,6 +2918,25 @@
       }
     }
 
+
+    /* =========================================================
+       V3.6.21 — MATCH COMPUTED SIZE IN CLASSIFICA
+       PARTITE team buttons effectively render at 16px because
+       button.team-open { font: inherit } wins in the cascade.
+       Apply that computed size directly to the standings label span.
+       ========================================================= */
+    .stand-row button.club.team-open > span{
+      font-size:16px !important;
+      font-weight:750 !important;
+      line-height:1.1 !important;
+    }
+
+    @media(min-width:650px){
+      .stand-row button.club.team-open > span{
+        font-size:16px !important;
+      }
+    }
+
 </style>
   <link
     rel="stylesheet"
@@ -8139,6 +8158,7 @@ document.querySelectorAll(".tab").forEach(btn=>{
 
   // V3.6.18 — current round starts at 00:00 Europe/Rome on first fixture day.
   // V3.6.20 — standings team names forced to exact PARTITE typography.
+  // V3.6.21 — standings team label span uses PARTITE computed size (16px).
   start();
 })();
 </script>
