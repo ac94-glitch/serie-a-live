@@ -87,7 +87,7 @@
       min-height:100vh;
       padding-bottom:calc(94px + env(safe-area-inset-bottom));
     }
-    button{font:inherit}
+    button,input,select,textarea{font-family:inherit;font-style:normal}
     .top{
       position:sticky;
       top:0;
@@ -164,7 +164,7 @@
       background:rgba(255,255,255,.54);
       color:var(--muted);
       font-size:10px;
-      font-weight:650;
+      font-weight:600;
       white-space:nowrap;
       text-align:right;
     }
@@ -275,7 +275,7 @@
       text-align:center;
       min-width:0;
       font-size:13px;
-      font-weight:750;
+      font-weight:700;
     }
     .team img{
       width:38px;height:38px;object-fit:contain;
@@ -289,7 +289,7 @@
     .scorebox{text-align:center}
     .score{
       font-size:27px;
-      font-weight:850;
+      font-weight:800;
       letter-spacing:-.04em;
       line-height:1.05;
     }
@@ -375,7 +375,7 @@
       margin:2px 0 11px;
       color:var(--muted);
       font-size:10px;
-      font-weight:850;
+      font-weight:800;
       letter-spacing:.065em;
       text-transform:uppercase;
     }
@@ -702,7 +702,7 @@
       background:var(--surface-soft);
     }
 
-    .minute{color:var(--muted);font-weight:650}
+    .minute{color:var(--muted);font-weight:600}
     .empty-events{
       text-align:center;
       color:var(--muted);
@@ -722,9 +722,9 @@
       justify-content:center;
       gap:5px;
       padding:8px 12px 9px;
-      font:inherit;
+      font-family:inherit;font-style:normal;
       font-size:11.5px;
-      font-weight:650;
+      font-weight:600;
       cursor:pointer;
     }
     .events-toggle:active{
@@ -750,9 +750,9 @@
       color:var(--muted);
       min-height:40px;
       padding:10px 6px 9px;
-      font:inherit;
+      font-family:inherit;font-style:normal;
       font-size:10.5px;
-      font-weight:750;
+      font-weight:700;
       letter-spacing:.025em;
       cursor:pointer;
     }
@@ -861,7 +861,7 @@
       text-align:center;
       color:var(--ink);
       font-size:12px;
-      font-weight:750;
+      font-weight:700;
     }
     .lineup-heading{
       margin:13px 0 8px;
@@ -909,7 +909,7 @@
       min-width:16px;
       color:var(--muted);
       font-size:10.5px;
-      font-weight:650;
+      font-weight:600;
     }
     .lineup-name{
       min-width:0;
@@ -956,7 +956,7 @@
       border:1.5px solid var(--team-border,rgba(255,255,255,.62));
       box-shadow:0 1px 3px rgba(16,24,40,.15);
       font-size:10px;
-      font-weight:850;
+      font-weight:800;
       line-height:1;
     }
     .pitch-player-name{
@@ -969,7 +969,7 @@
       color:#17251b;
       text-shadow:0 1px 1px rgba(255,255,255,.55);
       font-size:8.7px;
-      font-weight:750;
+      font-weight:700;
       line-height:1.12;
       letter-spacing:-.01em;
     }
@@ -1017,7 +1017,7 @@
       background:#fee4e2;
       color:#b42318;
       font-size:9.5px;
-      font-weight:850;
+      font-weight:800;
       letter-spacing:.035em;
       line-height:1;
     }
@@ -1110,7 +1110,7 @@
     .club img{width:24px;height:24px;object-fit:contain;flex:0 0 auto}
     .club span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .num{text-align:center;font-variant-numeric:tabular-nums}
-    .pts{font-weight:850}
+    .pts{font-weight:800}
     .leader-row{
       display:grid;
       grid-template-columns:34px 1fr 52px;
@@ -1123,7 +1123,7 @@
     .leader-row:last-child{border-bottom:0}
     .rank{
       font-size:17px;
-      font-weight:850;
+      font-weight:800;
       text-align:center;
     }
     .player{
@@ -1586,7 +1586,7 @@
       padding-top:8px;
       padding-bottom:8px;
       font-size:8.75px;
-      font-weight:850;
+      font-weight:800;
       letter-spacing:.045em;
     }
 
@@ -1603,14 +1603,14 @@
 
     .pos{
       font-size:12.5px;
-      font-weight:850;
+      font-weight:800;
       font-variant-numeric:tabular-nums;
     }
 
     .club{
       gap:8px;
       font-size:12.5px;
-      font-weight:750;
+      font-weight:700;
       line-height:1.1;
     }
 
@@ -1794,7 +1794,7 @@
       text-align:center;
       color:var(--muted);
       font-size:10px;
-      font-weight:850;
+      font-weight:800;
       letter-spacing:.07em;
       text-transform:uppercase;
       white-space:nowrap;
@@ -1866,7 +1866,7 @@
     .match-page-team-name{
       font-size:13px;
       line-height:1.15;
-      font-weight:850;
+      font-weight:800;
       letter-spacing:-.01em;
       white-space:nowrap;
       overflow:hidden;
@@ -1882,7 +1882,7 @@
     .match-page-score{
       font-size:34px;
       line-height:1;
-      font-weight:950;
+      font-weight:900;
       letter-spacing:-.04em;
       font-variant-numeric:tabular-nums;
     }
@@ -1948,7 +1948,7 @@
       padding:8px 4px;
       border-radius:11px;
       font-size:10px;
-      font-weight:750;
+      font-weight:700;
     }
 
     .match-page .detail-tab.active{
@@ -2050,7 +2050,7 @@
       border:0;
       background:transparent;
       color:inherit;
-      font:inherit;
+      font-family:inherit;font-style:normal;
       padding:0;
       margin:0;
     }
@@ -2236,7 +2236,7 @@
       margin-bottom:9px;
       color:var(--muted);
       font-size:10px;
-      font-weight:850;
+      font-weight:800;
       text-transform:uppercase;
       letter-spacing:.065em;
     }
@@ -2277,7 +2277,7 @@
     .team-form-empty{
       color:var(--muted);
       font-size:12px;
-      font-weight:650;
+      font-weight:600;
     }
 
     .team-fixtures{
@@ -2298,7 +2298,7 @@
     .team-fixture-label{
       color:var(--muted);
       font-size:8.25px;
-      font-weight:850;
+      font-weight:800;
       text-transform:uppercase;
       letter-spacing:.045em;
       white-space:nowrap;
@@ -2512,7 +2512,7 @@
     .match-page .detail-tab{
       min-height:38px;
       border-radius:10px;
-      font-weight:750;
+      font-weight:700;
     }
 
     .match-page .detail-tab.active{
@@ -2907,34 +2907,87 @@
        ========================================================= */
     .stand-row button.club.team-open{
       font-size:15px;
-      font-weight:750;
+      font-weight:700;
       line-height:1.1;
     }
 
     @media(min-width:650px){
       .stand-row button.club.team-open{
         font-size:15px;
-        font-weight:750;
+        font-weight:700;
       }
     }
 
 
     /* =========================================================
-       V3.6.21 — MATCH COMPUTED SIZE IN CLASSIFICA
-       PARTITE team buttons effectively render at 16px because
-       button.team-open { font: inherit } wins in the cascade.
-       Apply that computed size directly to the standings label span.
+       V3.6.21 — UNIFIED TYPOGRAPHY SYSTEM
+       One font family + one consistent weight scale across app.
        ========================================================= */
-    .stand-row button.club.team-open > span{
-      font-size:16px !important;
-      font-weight:750 !important;
-      line-height:1.1 !important;
+    :root{
+      --app-font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+      --fw-normal:400;
+      --fw-medium:600;
+      --fw-bold:700;
+      --fw-heavy:800;
+      --fw-black:900;
     }
 
-    @media(min-width:650px){
-      .stand-row button.club.team-open > span{
-        font-size:16px !important;
-      }
+    html,
+    body,
+    button,
+    input,
+    select,
+    textarea{
+      font-family:var(--app-font);
+      font-style:normal;
+      font-synthesis:none;
+    }
+
+    body{
+      font-weight:var(--fw-normal);
+    }
+
+    b,
+    strong{
+      font-weight:var(--fw-bold);
+    }
+
+    /* Same typography for team names in PARTITE and CLASSIFICA */
+    .team,
+    .stand-row button.club.team-open{
+      font-family:var(--app-font);
+      font-size:15px;
+      font-weight:var(--fw-bold);
+      font-style:normal;
+      line-height:1.2;
+      letter-spacing:0;
+    }
+
+    /* Standardize recurring semantic text weights */
+    .season,
+    .updated,
+    .status,
+    .date-label,
+    .round-center,
+    .today-btn,
+    .stand-head,
+    .stand-legend,
+    .stand-live-note,
+    .detail-tab,
+    .events-toggle{
+      font-family:var(--app-font);
+      font-style:normal;
+    }
+
+    /* Numbers remain tabular where useful, but use the same family/weight system */
+    .num,
+    .pos,
+    .pts,
+    .score,
+    .match-stat-value,
+    .team-sheet-stat-value{
+      font-family:var(--app-font);
+      font-style:normal;
     }
 
 </style>
@@ -8158,7 +8211,7 @@ document.querySelectorAll(".tab").forEach(btn=>{
 
   // V3.6.18 — current round starts at 00:00 Europe/Rome on first fixture day.
   // V3.6.20 — standings team names forced to exact PARTITE typography.
-  // V3.6.21 — standings team label span uses PARTITE computed size (16px).
+  // V3.6.21 — unified font family and standardized font-weight scale app-wide.
   start();
 })();
 </script>
