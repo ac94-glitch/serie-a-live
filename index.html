@@ -2899,7 +2899,26 @@
       .pitch-player-dot{font-size:11.5px}
     }
 
-  </style>
+  
+    /* =========================================================
+       V3.6.20 — TRUE MATCH-SIZE TEAM NAMES IN CLASSIFICA
+       High-specificity override placed last so button.team-open { font: inherit }
+       cannot shrink standings team names.
+       ========================================================= */
+    .stand-row button.club.team-open{
+      font-size:15px;
+      font-weight:750;
+      line-height:1.1;
+    }
+
+    @media(min-width:650px){
+      .stand-row button.club.team-open{
+        font-size:15px;
+        font-weight:750;
+      }
+    }
+
+</style>
   <link
     rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css"
@@ -8119,6 +8138,7 @@ document.querySelectorAll(".tab").forEach(btn=>{
   }
 
   // V3.6.18 — current round starts at 00:00 Europe/Rome on first fixture day.
+  // V3.6.20 — standings team names forced to exact PARTITE typography.
   start();
 })();
 </script>
