@@ -2872,6 +2872,28 @@
     .team-top-scorer-name{font-size:15px}
     .team-sheet-loading{font-size:14px}
 
+    /* =========================================================
+       V3.6.18 — CLASSIFICA READABILITY
+       Larger standings text only; layout/colors unchanged.
+       ========================================================= */
+    .stand-head{font-size:11.5px}
+    .pos{font-size:16px}
+    .club{font-size:16px}
+    .stand-row .num{font-size:14px}
+    .stand-row .pts{font-size:16px}
+    .stand-legend{font-size:12.5px}
+    .stand-live-badge{font-size:11.5px}
+    .stand-live-note{font-size:12.5px}
+    .stand-row{min-height:52px}
+
+    @media(min-width:650px){
+      .stand-head{font-size:12px}
+      .club{font-size:16px}
+      .stand-row .num{font-size:14px}
+      .stand-row .pts,
+      .pos{font-size:16px}
+    }
+
     @media(max-width:350px){
       .pitch-player-name{font-size:10.1px}
       .pitch-player-dot{font-size:11.5px}
@@ -3499,21 +3521,75 @@
     return out;
   }
 
+  function italyCalendarDayKey(value){
+    const date = value instanceof Date ? value : new Date(value);
+    if(Number.isNaN(date.getTime())) return null;
+
+    const parts = new Intl.DateTimeFormat("en-GB",{
+      timeZone:"Europe/Rome",
+      year:"numeric",
+      month:"2-digit",
+      day:"2-digit"
+    }).formatToParts(date);
+
+    const values = {};
+    for(const part of parts){
+      if(part.type !== "literal") values[part.type] = part.value;
+    }
+
+    const key = Number(`${values.year || ""}${values.month || ""}${values.day || ""}`);
+    return Number.isFinite(key) ? key : null;
+  }
+
   function detectCurrentRound(){
     const nums = Object.keys(rounds).map(Number).sort((a,b)=>a-b);
     if(!nums.length) return 1;
 
+    // A live round always wins.
     const live = nums.find(n => rounds[n].some(e => stateOf(e) === "live"));
     if(live) return live;
 
-    const now = Date.now();
-    let latestStarted = nums[0];
+    // The new matchday becomes current at 00:00 Italian time on the
+    // calendar day of its first scheduled fixture, not at kickoff.
+    const todayKey = italyCalendarDayKey(new Date());
+    let latestCurrent = nums[0];
+
     for(const n of nums){
-      const times = rounds[n].map(e => new Date(e.date).getTime()).filter(Number.isFinite);
-      const first = Math.min(...times);
-      if(Number.isFinite(first) && first <= now) latestStarted = n;
+      const dayKeys = rounds[n]
+        .map(e => italyCalendarDayKey(e?.date))
+        .filter(Number.isFinite);
+
+      if(!dayKeys.length) continue;
+
+      const firstDay = Math.min(...dayKeys);
+      if(Number.isFinite(todayKey) && firstDay <= todayKey){
+        latestCurrent = n;
+      }
     }
-    return latestStarted;
+
+    return latestCurrent;
+  }
+
+  function syncCurrentRoundFromClock(){
+    const detected = detectCurrentRound();
+    if(!rounds[detected] || Number(detected) === Number(currentRound)){
+      return false;
+    }
+
+    const previousCurrent = currentRound;
+    const wasFollowingCurrent =
+      Number(selectedRound) === Number(previousCurrent);
+
+    currentRound = detected;
+
+    if(wasFollowingCurrent){
+      selectedRound = currentRound;
+    }
+
+    standingsCache = null;
+    standingsBaseFetchedAt = 0;
+
+    return true;
   }
 
   function buildDateRanges(start,end,blockDays=13){
@@ -7841,6 +7917,10 @@ document.querySelectorAll(".tab").forEach(btn=>{
       const nextTab = btn.dataset.tab;
       if(nextTab === activeTab) return;
 
+      // If the app stayed open across the start of a new matchday,
+      // align "current round" before rendering the newly selected tab.
+      syncCurrentRoundFromClock();
+
       document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
       btn.classList.add("active");
       activeTab = nextTab;
@@ -7886,6 +7966,9 @@ document.querySelectorAll(".tab").forEach(btn=>{
     clearError();
 
     const wantedRound = selectedRound;
+    const previousCurrent = currentRound;
+    const wasFollowingCurrent =
+      Number(wantedRound) === Number(previousCurrent);
     const roundsToRefresh = new Set([wantedRound,currentRound]);
 
     try{
@@ -7905,8 +7988,14 @@ document.querySelectorAll(".tab").forEach(btn=>{
       // LIVE / halftime remain open and keep EVENTI/STATISTICHE/FORMAZIONI selection.
       resetMatchDetailsAfterRefresh();
 
-      // Manteniamo esattamente il tab e la giornata che l'utente stava guardando.
-      selectedRound = rounds[wantedRound] ? wantedRound : currentRound;
+      // Re-evaluate the matchday using today's Italian calendar date.
+      syncCurrentRoundFromClock();
+
+      // If the user was following the current matchday, move with it.
+      // If they had manually browsed another round, preserve that choice.
+      selectedRound = wasFollowingCurrent
+        ? currentRound
+        : (rounds[wantedRound] ? wantedRound : currentRound);
 
       await renderActive();
       setUpdated();
@@ -7921,6 +8010,22 @@ document.querySelectorAll(".tab").forEach(btn=>{
   refreshBtn.addEventListener("click",manualRefresh);
 
   async function refreshCurrentRound(){
+    const previousCurrent = currentRound;
+    const wasWatchingCurrentMatches =
+      activeTab === "matches" &&
+      Number(selectedRound) === Number(previousCurrent);
+
+    const roundChanged = syncCurrentRoundFromClock();
+
+    if(roundChanged && wasWatchingCurrentMatches){
+      selectedRound = currentRound;
+      await renderMatches();
+
+      if(matchPageOpenId){
+        await refreshOpenMatchPage();
+      }
+    }
+
     const watchingMatches =
       activeTab === "matches" &&
       selectedRound === currentRound;
@@ -8013,6 +8118,7 @@ document.querySelectorAll(".tab").forEach(btn=>{
     }
   }
 
+  // V3.6.18 — current round starts at 00:00 Europe/Rome on first fixture day.
   start();
 })();
 </script>
