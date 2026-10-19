@@ -3322,6 +3322,53 @@
   }
 
   async function getJson(url){
+    // ESPN ha smesso di accettare intervalli scoreboard come YYYYMMDD-YYYYMMDD.
+    // Correzione circoscritta: usa date singole e riunisce gli eventi per ID.
+    const rangeMatch = /[?&]dates=(\d{8})-(\d{8})(?:&|$)/.exec(url);
+    if(url.includes("/scoreboard") && rangeMatch){
+      const parseKey = key => new Date(Date.UTC(
+        Number(key.slice(0,4)), Number(key.slice(4,6))-1, Number(key.slice(6,8))
+      ));
+      const first = parseKey(rangeMatch[1]);
+      const last = parseKey(rangeMatch[2]);
+      const span = Math.round((last-first)/86400000);
+      if(!Number.isFinite(span) || span < 0 || span > 370){
+        throw new Error("Intervallo ESPN non valido");
+      }
+      const keys = [];
+      for(let i=0;i<=span;i++){
+        keys.push(fmtDateKey(new Date(first.getTime()+i*86400000)));
+      }
+      const boards = await mapConcurrent(keys,3,async key=>{
+        const dailyUrl = url.replace(
+          /([?&]dates=)\d{8}-\d{8}(?=&|$)/,
+          "$1"+key
+        );
+        let lastError;
+        for(let attempt=0;attempt<3;attempt++){
+          try{
+            const board = await getJson(dailyUrl);
+            if(!Array.isArray(board?.events)){
+              throw new Error("Risposta ESPN non valida per "+key);
+            }
+            return board;
+          }catch(error){
+            lastError = error;
+            if(attempt < 2){
+              await new Promise(resolve=>setTimeout(resolve,250*(attempt+1)));
+            }
+          }
+        }
+        throw lastError;
+      });
+      const merged = new Map();
+      for(const board of boards){
+        for(const event of board.events){
+          if(event?.id != null) merged.set(String(event.id),event);
+        }
+      }
+      return {...(boards[0] || {}),events:[...merged.values()]};
+    }
     const r = await fetch(url,{cache:"no-store"});
     if(!r.ok) throw new Error("HTTP " + r.status);
     return r.json();
