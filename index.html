@@ -3138,6 +3138,8 @@
   let seasonEndDate = null;
   let seasonHydrationTimer = null;
   let calendarRoundByDate = new Map();
+  // Solo le date ESPN caricate con successo. Non cambia lo stato dell'interfaccia.
+  const loadedCalendarDays = new Set();
   let matchesRenderToken = 0;
   let teamSheetRequestToken = 0;
   let teamSheetScrollY = 0;
@@ -3322,56 +3324,96 @@
   }
 
   async function getJson(url){
-    // ESPN ha smesso di accettare intervalli scoreboard come YYYYMMDD-YYYYMMDD.
-    // Correzione circoscritta: usa date singole e riunisce gli eventi per ID.
-    const rangeMatch = /[?&]dates=(\d{8})-(\d{8})(?:&|$)/.exec(url);
+    // ESPN scoreboard: interroga solo i giorni di partita, non tutti i
+    // giorni dell'intervallo (che produrrebbero troppe richieste).
+    const rangeMatch = /[?&]dates=(\d{8})-(\d{8})(?=&|$)/.exec(url);
     if(url.includes("/scoreboard") && rangeMatch){
-      const parseKey = key => new Date(Date.UTC(
-        Number(key.slice(0,4)), Number(key.slice(4,6))-1, Number(key.slice(6,8))
-      ));
-      const first = parseKey(rangeMatch[1]);
-      const last = parseKey(rangeMatch[2]);
-      const span = Math.round((last-first)/86400000);
-      if(!Number.isFinite(span) || span < 0 || span > 370){
-        throw new Error("Intervallo ESPN non valido");
-      }
-      const keys = [];
-      for(let i=0;i<=span;i++){
-        keys.push(fmtDateKey(new Date(first.getTime()+i*86400000)));
-      }
-      const boards = await mapConcurrent(keys,3,async key=>{
-        const dailyUrl = url.replace(
-          /([?&]dates=)\d{8}-\d{8}(?=&|$)/,
-          "$1"+key
+      const start = rangeMatch[1];
+      const end = rangeMatch[2];
+      if(start > end) throw new Error("Intervallo ESPN non valido");
+
+      let days = [...calendarRoundByDate.keys()]
+        .filter(day=>day >= start && day <= end)
+        .sort();
+
+      // Se il calendario non e' ancora disponibile, limita la ricerca
+      // a pochi giorni anziche' interrogare l'intera stagione.
+      if(!calendarRoundByDate.size){
+        const toDate = key=>new Date(Date.UTC(
+          +key.slice(0,4),+key.slice(4,6)-1,+key.slice(6,8)
+        ));
+        const first = toDate(start);
+        const last = toDate(end);
+        const span = Math.round((last-first)/86400000);
+        if(!Number.isFinite(span) || span < 0 || span > 30){
+          throw new Error("Calendario ESPN non disponibile");
+        }
+        days = Array.from({length:span+1},(_,i)=>
+          fmtDateKey(new Date(first.getTime()+i*86400000))
         );
-        let lastError;
-        for(let attempt=0;attempt<3;attempt++){
-          try{
-            const board = await getJson(dailyUrl);
-            if(!Array.isArray(board?.events)){
-              throw new Error("Risposta ESPN non valida per "+key);
-            }
-            return board;
-          }catch(error){
-            lastError = error;
-            if(attempt < 2){
-              await new Promise(resolve=>setTimeout(resolve,250*(attempt+1)));
-            }
-          }
+      }
+
+      if(!days.length) return {events:[]};
+
+      const results = await mapConcurrent(days,3,async day=>{
+        try{
+          const singleUrl = url.replace(
+            /([?&]dates=)\d{8}-\d{8}(?=&|$)/,
+            "$1" + day
+          );
+          return {ok:true,data:await getJson(singleUrl)};
+        }catch(error){
+          return {ok:false,error};
         }
-        throw lastError;
       });
+
+      const good = results.filter(result=>result.ok);
+      if(!good.length) throw results[0]?.error || new Error("ESPN non disponibile");
+
       const merged = new Map();
-      for(const board of boards){
-        for(const event of board.events){
-          if(event?.id != null) merged.set(String(event.id),event);
+      for(const result of good){
+        for(const ev of result.data.events){
+          if(ev?.id != null) merged.set(String(ev.id),ev);
         }
       }
-      return {...(boards[0] || {}),events:[...merged.values()]};
+      return {...good[0].data,events:[...merged.values()]};
     }
-    const r = await fetch(url,{cache:"no-store"});
-    if(!r.ok) throw new Error("HTTP " + r.status);
-    return r.json();
+
+    // Un errore temporaneo su un giorno non deve bloccare tutta l'app.
+    // I 4xx non transitori non vengono ripetuti, per non sovraccaricare ESPN.
+    for(let attempt=0;attempt<2;attempt++){
+      const controller = new AbortController();
+      const timeout = setTimeout(()=>controller.abort(),12000);
+      try{
+        const response = await fetch(url,{
+          cache:"no-store",signal:controller.signal
+        });
+        if(!response.ok){
+          const error = new Error("HTTP " + response.status);
+          error.status = response.status;
+          throw error;
+        }
+        const result = await response.json();
+        const singleDay = url.includes("/scoreboard")
+          ? /[?&]dates=(\d{8})(?=&|$)/.exec(url)
+          : null;
+        if(singleDay){
+          if(!Array.isArray(result?.events)){
+            throw new Error("Risposta ESPN non valida");
+          }
+          loadedCalendarDays.add(singleDay[1]);
+        }
+        return result;
+      }catch(error){
+        const retry = attempt === 0 && (
+          !error.status || error.status === 429 || error.status >= 500
+        );
+        if(!retry) throw error;
+        await new Promise(resolve=>setTimeout(resolve,500));
+      }finally{
+        clearTimeout(timeout);
+      }
+    }
   }
 
   function skeletonMatchHtml(){
@@ -3777,19 +3819,23 @@
     if(!seasonStartDate || !seasonEndDate) return;
 
     seasonCalendarPromise = (async()=>{
-      const ranges = buildDateRanges(seasonStartDate,seasonEndDate,13);
-
-      const chunks = await mapConcurrent(
-        ranges,
-        4,
-        rng => getJson(`${SITE}/scoreboard?dates=${rng}`).catch(()=>({events:[]}))
-      );
+      // Le date ESPN nel calendario sono SOLO i giorni che possono avere
+      // partite: non ripetere le richieste dei giorni gia' caricati.
+      const days = [...calendarRoundByDate.keys()].sort();
+      if(!days.length) throw new Error("Calendario ESPN non disponibile");
+      const remaining = days.filter(day=>!loadedCalendarDays.has(day));
+      const chunks = await mapConcurrent(remaining,3,async day=>{
+        try{
+          return await getJson(`${SITE}/scoreboard?dates=${day}`);
+        }catch(_){
+          return null;
+        }
+      });
 
       const merged = new Map(allEvents.map(ev=>[String(ev.id),ev]));
-
       for(const chunk of chunks){
         for(const ev of chunk?.events || []){
-          merged.set(String(ev.id),ev);
+          if(ev?.id != null) merged.set(String(ev.id),ev);
         }
       }
 
@@ -3802,9 +3848,6 @@
       rounds = groupIntoRounds(allEvents);
       currentRound = detectCurrentRound();
 
-      // If the app was still on "today", follow ESPN's refined current
-      // round. If the user manually swiped elsewhere, preserve that choice
-      // for the current session only.
       if(wasOnCurrentRound){
         selectedRound = currentRound;
       }else if(rounds[previousSelected]){
@@ -3813,7 +3856,12 @@
         selectedRound = currentRound;
       }
 
-      seasonCalendarLoaded = true;
+      seasonCalendarLoaded = days.every(day=>loadedCalendarDays.has(day));
+      // Evita classifiche marcatori/assist incomplete se qualche
+      // giornata non e' stata restituita da ESPN.
+      if(!seasonCalendarLoaded){
+        throw new Error("Calendario stagionale ESPN incompleto");
+      }
     })();
 
     try{
@@ -3901,16 +3949,12 @@
 
     allEvents = [...map.values()];
 
-    // If ESPN unexpectedly gives us too little near-date data,
-    // fall back to the complete calendar before rendering.
-    if(allEvents.length < 8){
-      await hydrateSeasonCalendar();
-    }else{
-      rounds = groupIntoRounds(allEvents);
-      currentRound = detectCurrentRound();
-      selectedRound = currentRound;
-      scheduleSeasonHydration();
-    }
+    // Mostra subito i risultati disponibili: il download del calendario
+    // completo non deve bloccare l'avvio anche se ESPN e' temporaneamente lento.
+    rounds = groupIntoRounds(allEvents);
+    currentRound = detectCurrentRound();
+    selectedRound = currentRound;
+    scheduleSeasonHydration();
 
     setUpdated();
   }
