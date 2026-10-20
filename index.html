@@ -3084,14 +3084,22 @@
       height:26px;
       flex-basis:26px;
     }
+    /* V5.9 — STATISTICHE: stesso peso per nomi bianchi e nomi Fanta oro.
+       L'evidenziazione rimane solo colore + stella; nessun cambio altrove. */
     .leader-row .player-name{
       font-size:15px;
-      font-weight:700;
+      font-weight:500;
       line-height:1.1;
     }
     .leader-row .leader-value{
       font-size:16px;
       font-weight:900;
+    }
+
+    /* V5.10 — Identical name typography in all three STATISTICHE views.
+       Preserve the Fanta gold/star; only normalize team-name weight. */
+    .stand-row button.club.team-open{
+      font-weight:500;
     }
 
     /* V5.8 — Formazioni a due colonne, allineate verso l'esterno.
