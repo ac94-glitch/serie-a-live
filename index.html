@@ -3,6 +3,27 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <script>
+    /* V5.4 — prevent Safari iOS focus zoom without permanently locking zoom.
+       Temporarily limit automatic focus magnification only while an editable
+       control has focus. Restore the original viewport on blur. */
+    (() => {
+      const viewport = document.querySelector('meta[name="viewport"]');
+      if (!viewport || !/iPad|iPhone|iPod/.test(navigator.userAgent)) return;
+      const original = viewport.getAttribute('content');
+      const focused = original + ', maximum-scale=1';
+      document.addEventListener('focusin', (event) => {
+        if (event.target.matches?.('input:not([type="file"]), select, textarea')) {
+          viewport.setAttribute('content', focused);
+        }
+      }, true);
+      document.addEventListener('focusout', (event) => {
+        if (event.target.matches?.('input:not([type="file"]), select, textarea')) {
+          viewport.setAttribute('content', original);
+        }
+      }, true);
+    })();
+  </script>
   <meta name="theme-color" id="themeColor" content="#f4f6f8">
   <meta name="color-scheme" content="light dark">
   <title>Serie A Live</title>
