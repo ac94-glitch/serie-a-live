@@ -4712,10 +4712,17 @@
       // A second yellow may appear again as a yellow or a red card.
       if(a.kind !== b.kind &&
          a.kind !== "secondyellow" && b.kind !== "secondyellow") return false;
-      return sameTimelineMinute(a.minute,b.minute,1) &&
-        (sameTimelinePerson(a.player,b.player) ||
-         (sameTimelineMinute(a.minute,b.minute,0) &&
-          sameTimelineAbbreviatedAlias(a.player,b.player)));
+      if(!sameTimelineMinute(a.minute,b.minute,1)) return false;
+      if(sameTimelinePerson(a.player,b.player)) return true;
+      // Some ESPN feeds disagree on the first initial for one booking,
+      // e.g. E. Perez / K. Pérez. Restrict this fallback to the exact
+      // minute, same team and same card type (or second-yellow variant).
+      // Never collapse different surnames or different minutes.
+      if(!sameTimelineMinute(a.minute,b.minute,0)) return false;
+      const one = timelinePersonSignature(a.player);
+      const two = timelinePersonSignature(b.player);
+      return !!(one && two && one.surname.length >= 4 &&
+        one.surname === two.surname);
     }
 
     if(a.kind !== b.kind) return false;
