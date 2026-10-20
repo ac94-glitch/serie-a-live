@@ -1320,8 +1320,18 @@
       -webkit-transform:translate3d(0,0,0);
       backface-visibility:hidden;
       -webkit-backface-visibility:hidden;
-      will-change:transform;
+      /* Avoid forcing a separate compositing layer for the fixed wrapper:
+         Safari iOS can leave that layer behind during dynamic toolbar resize. */
+      will-change:auto;
       overflow:visible;
+    }
+
+    /* V5.5: visual-viewport anchoring on iOS Safari.
+       JS sets the visible viewport's top and height; the bar stays at its
+       actual bottom even as Safari expands/collapses browser chrome. */
+    html.ios-nav-viewport .bottom-nav-layer{
+      top:var(--ios-nav-top,auto);
+      bottom:auto;
     }
 
     .bottom-nav-frost{
@@ -3160,6 +3170,38 @@
     </section>
   </div>
 
+
+  <script>
+    /* V5.5 — keep the floating tab bar anchored to the *visible* viewport
+       on Safari iOS while browser toolbars expand or collapse on scroll.
+       Does not affect page scrolling, text zoom or the nav appearance. */
+    (() => {
+      if (!/iPad|iPhone|iPod/.test(navigator.userAgent)) return;
+      const vv = window.visualViewport;
+      const nav = document.getElementById('bottomNavLayer');
+      if (!vv || !nav) return;
+      document.documentElement.classList.add('ios-nav-viewport');
+      let scheduled = false;
+      const position = () => {
+        scheduled = false;
+        const navHeight = nav.getBoundingClientRect().height;
+        const top = vv.offsetTop + vv.height - navHeight;
+        if (!Number.isFinite(top)) return;
+        document.documentElement.style.setProperty('--ios-nav-top', `${Math.round(top * 100) / 100}px`);
+      };
+      const schedule = () => {
+        if (scheduled) return;
+        scheduled = true;
+        requestAnimationFrame(position);
+      };
+      vv.addEventListener('resize', schedule, {passive:true});
+      vv.addEventListener('scroll', schedule, {passive:true});
+      window.addEventListener('resize', schedule, {passive:true});
+      window.addEventListener('scroll', schedule, {passive:true});
+      window.addEventListener('pageshow', schedule);
+      schedule();
+    })();
+  </script>
 
   <div class="bottom-nav-layer" id="bottomNavLayer">
     <div class="bottom-nav-frost" aria-hidden="true"></div>
