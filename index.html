@@ -4651,6 +4651,17 @@
     return !one.first || !two.first || one.first === two.first;
   }
 
+  // ESPN feeds sometimes disagree on the initial for the same incident.
+  // Allow a cautious fallback only for abbreviated names and exact-minute,
+  // same-team, same-kind incidents (checked by the caller).
+  function sameTimelineAbbreviatedAlias(a,b){
+    const one = timelinePersonSignature(a);
+    const two = timelinePersonSignature(b);
+    if(!one || !two || one.surname.length < 4 || one.surname !== two.surname) return false;
+    const abbreviated = value => /^\s*[A-Za-zÀ-ÿ]\.\s+/.test(String(value || ""));
+    return abbreviated(a) && abbreviated(b);
+  }
+
   function timelineMinuteParts(value){
     const normalized = normalizeFootballMinute(value);
     const match = normalized.match(/^(\d{1,3})(?:\+(\d{1,2}))?'?$/);
@@ -4702,7 +4713,9 @@
       if(a.kind !== b.kind &&
          a.kind !== "secondyellow" && b.kind !== "secondyellow") return false;
       return sameTimelineMinute(a.minute,b.minute,1) &&
-        sameTimelinePerson(a.player,b.player);
+        (sameTimelinePerson(a.player,b.player) ||
+         (sameTimelineMinute(a.minute,b.minute,0) &&
+          sameTimelineAbbreviatedAlias(a.player,b.player)));
     }
 
     if(a.kind !== b.kind) return false;
@@ -4714,7 +4727,8 @@
     }
 
     if(a.kind === "goaldisallowed"){
-      return sameTimelinePerson(a.player,b.player);
+      return sameTimelinePerson(a.player,b.player) ||
+        sameTimelineAbbreviatedAlias(a.player,b.player);
     }
 
     // Repeated VAR decisions are removed only if their descriptions match.
