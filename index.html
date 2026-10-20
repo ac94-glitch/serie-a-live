@@ -3017,6 +3017,48 @@
     .fanta-star{display:inline-block;margin-right:3px}
     .fanta-role-select{padding:7px 5px;border-radius:9px;border:1px solid var(--line);background:var(--surface-soft);color:var(--ink);font-size:16px}
     .fanta-empty{font-size:13px;color:var(--muted);padding:12px 0}
+
+    /* V5.3 — iOS Safari: keep editable controls comfortably above the
+       16px focus-zoom threshold, without disabling user pinch zoom. */
+    @supports (-webkit-touch-callout: none) {
+      input.fanta-search,
+      select.fanta-role-select {
+        font-size:18px !important;
+        -webkit-text-size-adjust:100%;
+      }
+    }
+
+    /* V5.2 — Marcatori e Assist con la stessa densità visiva della Classifica.
+       Nessuna modifica a dati, navigazione, colori o gestione Fanta. */
+    .leader-row{
+      grid-template-columns:25px minmax(0,1fr) 38px;
+      gap:8px;
+      min-height:52px;
+      padding:8px 9px;
+      border-bottom-width:.5px;
+    }
+    .leader-row .rank{
+      font-size:16px;
+      font-weight:800;
+      font-variant-numeric:tabular-nums;
+    }
+    .leader-row .player{
+      gap:8px;
+    }
+    .leader-row .player-logo{
+      width:26px;
+      height:26px;
+      flex-basis:26px;
+    }
+    .leader-row .player-name{
+      font-size:15px;
+      font-weight:700;
+      line-height:1.1;
+    }
+    .leader-row .leader-value{
+      font-size:16px;
+      font-weight:900;
+    }
 </style>
   <link
     rel="stylesheet"
