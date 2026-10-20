@@ -3884,8 +3884,15 @@
     observer.observe(document.body,{childList:true,subtree:true});
   }
 
+  // V5.13: Atalanta officially replaced its oval crest on 22 May 2026.
+  // ESPN may still return the former crest; use the authentic 2026 image.
+  const ATALANTA_2026_LOGO = "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0c/Atalanta_BC.png/250px-Atalanta_BC.png";
+  function officialTeamLogo(url,name=""){
+    return /\batalanta\b/i.test(String(name||"")) ? ATALANTA_2026_LOGO : (url || "");
+  }
+
   function teamLogo(c){
-    return c?.team?.logo || c?.team?.logos?.[0]?.href || "";
+    return officialTeamLogo(c?.team?.logo || c?.team?.logos?.[0]?.href || "",teamName(c));
   }
 
   function cleanHexColor(value){
@@ -7919,7 +7926,7 @@
 
       rows.forEach((row,index)=>{
         const team = row.team || {};
-        const logo = team.logos?.[0]?.href || team.logo || "";
+        const logo = officialTeamLogo(team.logos?.[0]?.href || team.logo || "",team.shortDisplayName||team.displayName||team.name);
         const pos = isLiveProjection
           ? index + 1
           : (row.baseRank || index + 1);
@@ -8253,6 +8260,7 @@
   }
 
   function teamSheetHeaderHtml(name,logo,meta="Serie A"){
+    logo = officialTeamLogo(logo,name);
     return `<div class="team-sheet-top">
       ${logo
         ? `<img class="team-sheet-logo${juventusLogoClass(name)}" src="${esc(logo)}" alt="" loading="lazy">`
@@ -8319,11 +8327,13 @@
         name ||
         "Squadra";
 
-      const resolvedLogo =
+      const resolvedLogo = officialTeamLogo(
         team?.logos?.[0]?.href ||
         team?.logo ||
         logo ||
-        leaderTeamLogo(resolvedName);
+        leaderTeamLogo(resolvedName),
+        resolvedName
+      );
 
       const teamEvents = teamEventsFor(
         row?.id || id,
@@ -8467,6 +8477,7 @@
   }
 
   function leaderTeamLogo(team){
+    if(/\batalanta\b/i.test(String(team||""))) return ATALANTA_2026_LOGO;
     const wanted = normalizedTeamText(team);
     if(!wanted || wanted === "—") return "";
 
