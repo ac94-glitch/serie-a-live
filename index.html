@@ -3043,6 +3043,11 @@
     .fanta-tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
     .fanta-tools button,.fanta-import-label{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);border-radius:var(--ui-radius-control);background:var(--surface-soft);color:var(--ink);padding:10px 12px;font-size:12px;font-weight:750;cursor:pointer}
     .fanta-import-label input{display:none}
+
+    /* V5.12 — ESPN original Juventus crest: dark variant where available.
+       CSS recoloring is used only if ESPN's dark image is unavailable. */
+    html.theme-dark img.juve-logo.juve-logo-fallback{filter:brightness(0) invert(1)!important}
+
     .fanta-star,.fanta-highlight{color:#b98919!important}
     .fanta-highlight{font-weight:500!important;-webkit-text-stroke:0!important}
     .fanta-highlight .fanta-star{font-weight:600!important}
@@ -3613,6 +3618,7 @@
     }
 
     updateThemeButton();
+    syncJuventusLogos();
   }
 
   function setupThemeControl(){
@@ -3820,6 +3826,64 @@
   function teamName(c){
     return c?.team?.shortDisplayName || c?.team?.displayName || c?.team?.name || "—";
   }
+  // Juventus only: use the ESPN team ID or a known name, not the image's color.
+  function juventusLogoClass(name="", id=""){
+    const teamId = String(id ?? "").trim();
+    const normalized = String(name ?? "").trim().toLowerCase();
+    return teamId === "111" || /\b(juventus|juve)\b/i.test(normalized)
+      ? " juve-logo"
+      : "";
+  }
+
+  // V5.12: keep ESPN's original Juventus artwork. ESPN may publish a
+  // separate 500-dark/100-dark variant; otherwise use the original PNG.
+  function espnJuventusDarkUrl(url){
+    try{
+      const parsed = new URL(url,location.href);
+      if(!/(^|\.)espncdn\.com$/i.test(parsed.hostname)) return "";
+      if(!/\/i\/teamlogos\/soccer\//i.test(parsed.pathname)) return "";
+      const changed = parsed.pathname.replace(/\/(500|100|50|200)\//i,"/$1-dark/");
+      if(changed === parsed.pathname) return "";
+      parsed.pathname = changed;
+      return parsed.href;
+    }catch(_){return "";}
+  }
+
+  function syncJuventusLogos(){
+    const dark = document.documentElement.classList.contains("theme-dark");
+    document.querySelectorAll("img.juve-logo").forEach(img=>{
+      if(!img.dataset.juveOriginal){
+        img.dataset.juveOriginal = img.getAttribute("src") || "";
+      }
+      if(!img.dataset.juveErrorHandler){
+        img.dataset.juveErrorHandler = "1";
+        img.addEventListener("error",()=>{
+          const original = img.dataset.juveOriginal || "";
+          if(img.getAttribute("src") !== original){
+            img.dataset.juveDarkUnavailable = "1";
+            img.classList.add("juve-logo-fallback");
+            img.setAttribute("src",original);
+          }
+        });
+      }
+      const original = img.dataset.juveOriginal;
+      const darkUrl = espnJuventusDarkUrl(original);
+      const useDarkVariant = dark && darkUrl && img.dataset.juveDarkUnavailable !== "1";
+      const target = useDarkVariant ? darkUrl : original;
+      img.classList.toggle("juve-logo-fallback",Boolean(dark && !useDarkVariant));
+      if(img.getAttribute("src") !== target) img.setAttribute("src",target);
+    });
+  }
+
+  function setupJuventusLogos(){
+    syncJuventusLogos();
+    // Match cards and rankings are rendered asynchronously after ESPN fetches.
+    const observer = new MutationObserver(records=>{
+      if(records.some(record=>record.addedNodes.length)) syncJuventusLogos();
+    });
+    observer.observe(document.body,{childList:true,subtree:true});
+  }
+
   function teamLogo(c){
     return c?.team?.logo || c?.team?.logos?.[0]?.href || "";
   }
@@ -6937,7 +7001,7 @@
     return `<div class="match-page-summary">
       <div class="match-page-team">
         ${m.home.logo
-          ? `<img src="${esc(m.home.logo)}" alt="" loading="eager">`
+          ? `<img class="${juventusLogoClass(m.home.name,m.home.id).trim()}" src="${esc(m.home.logo)}" alt="" loading="eager">`
           : ""
         }
         <div class="match-page-team-name">${esc(m.home.name)}</div>
@@ -6952,7 +7016,7 @@
 
       <div class="match-page-team">
         ${m.away.logo
-          ? `<img src="${esc(m.away.logo)}" alt="" loading="eager">`
+          ? `<img class="${juventusLogoClass(m.away.name,m.away.id).trim()}" src="${esc(m.away.logo)}" alt="" loading="eager">`
           : ""
         }
         <div class="match-page-team-name">${esc(m.away.name)}</div>
@@ -7210,7 +7274,7 @@
           data-team-logo="${esc(m.home.logo || "")}"
           aria-label="Apri scheda ${esc(m.home.name)}"
         >
-          ${m.home.logo ? `<img src="${esc(m.home.logo)}" alt="" loading="lazy">` : ""}
+          ${m.home.logo ? `<img class="${juventusLogoClass(m.home.name,m.home.id).trim()}" src="${esc(m.home.logo)}" alt="" loading="lazy">` : ""}
           <div class="team-name">${esc(m.home.name)}</div>
         </button>
 
@@ -7228,7 +7292,7 @@
           data-team-logo="${esc(m.away.logo || "")}"
           aria-label="Apri scheda ${esc(m.away.name)}"
         >
-          ${m.away.logo ? `<img src="${esc(m.away.logo)}" alt="" loading="lazy">` : ""}
+          ${m.away.logo ? `<img class="${juventusLogoClass(m.away.name,m.away.id).trim()}" src="${esc(m.away.logo)}" alt="" loading="lazy">` : ""}
           <div class="team-name">${esc(m.away.name)}</div>
         </button>
       </div>
@@ -7879,7 +7943,7 @@
             data-team-logo="${esc(logo)}"
             aria-label="Apri scheda ${esc(team.shortDisplayName||team.displayName||team.name||"—")}"
           >
-            ${logo?`<img src="${esc(logo)}" alt="" loading="lazy">`:""}
+            ${logo?`<img class="${juventusLogoClass(team.shortDisplayName||team.displayName||team.name,row.id).trim()}" src="${esc(logo)}" alt="" loading="lazy">`:""}
             <span>${esc(team.shortDisplayName||team.displayName||team.name||"—")}</span>
           </button>
           <div class="num">${esc(row.gp)}</div>
@@ -8035,7 +8099,7 @@
     }
 
     const opponentLogo = item.opponentLogo
-      ? `<img src="${esc(item.opponentLogo)}" alt="" loading="lazy">`
+      ? `<img class="${juventusLogoClass(item.opponentName).trim()}" src="${esc(item.opponentLogo)}" alt="" loading="lazy">`
       : "";
 
     const main = isNext
@@ -8191,7 +8255,7 @@
   function teamSheetHeaderHtml(name,logo,meta="Serie A"){
     return `<div class="team-sheet-top">
       ${logo
-        ? `<img class="team-sheet-logo" src="${esc(logo)}" alt="" loading="lazy">`
+        ? `<img class="team-sheet-logo${juventusLogoClass(name)}" src="${esc(logo)}" alt="" loading="lazy">`
         : `<span class="team-sheet-logo" aria-hidden="true"></span>`
       }
 
@@ -8621,7 +8685,7 @@
           <div class="rank">${r.rank}</div>
           <div class="player">
             ${logo
-              ? `<img class="player-logo" src="${esc(logo)}" alt="" loading="lazy">`
+              ? `<img class="player-logo${juventusLogoClass(r.team)}" src="${esc(logo)}" alt="" loading="lazy">`
               : `<span class="player-logo" aria-hidden="true"></span>`
             }
             <div class="player-name">${fantaFullNameHtml(r.name,r.id,r.team)}</div>
@@ -8832,6 +8896,7 @@ document.querySelectorAll(".tab").forEach(btn=>{
     try{
       setupRoundSwipe();
       setupThemeControl();
+      setupJuventusLogos();
       setupMatchPage();
       setupTeamSheet();
       clearLegacyUiState();
