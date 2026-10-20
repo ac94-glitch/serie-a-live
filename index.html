@@ -3093,7 +3093,18 @@
       font-size:16px;
       font-weight:900;
     }
-</style>
+
+    /* V5.8 — Formazioni a due colonne, allineate verso l'esterno.
+       Il nome resta nel colore standard; la sola stella e' oro. */
+    .lineup-player.home{justify-content:flex-start;text-align:left}
+    .lineup-player.away{justify-content:flex-end;text-align:right}
+    .lineup-dash{color:var(--muted);flex:0 0 auto}
+    .lineup-name{color:var(--ink);font-weight:inherit}
+    .lineup-fanta-star{color:#b98919;font-weight:600;margin-left:4px;white-space:nowrap}
+    .lineup-player.away .lineup-fanta-star{margin-left:0;margin-right:4px}
+    html.theme-dark .lineup-fanta-star{color:#f2c45b}
+
+  </style>
   <link
     rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css"
@@ -6151,6 +6162,14 @@
     </div>`;
   }
 
+  // Formazioni: testo standard per tutti, solo una stella oro per i giocatori in rosa.
+  function fantaLineupNameHtml(name,id="",side="home"){
+    const label=esc(shortPlayerName(name));
+    if(!isMyPlayer(name,id)) return label;
+    const star='<span class="lineup-fanta-star" aria-label="Nella mia rosa">★</span>';
+    return side==="away" ? `${star}${label}` : `${label}${star}`;
+  }
+
   function lineupRowsHtml(homePlayers,awayPlayers){
     const max = Math.max(homePlayers?.length || 0,awayPlayers?.length || 0);
     if(!max) return "";
@@ -6164,12 +6183,14 @@
         <div class="lineup-player home">
           ${h ? `
             <span class="lineup-number">${esc(h.jersey || "")}</span>
-            <span class="lineup-name">${fantaNameHtml(h.name,h.id)}</span>
+            <span class="lineup-dash">-</span>
+            <span class="lineup-name">${fantaLineupNameHtml(h.name,h.id,"home")}</span>
           ` : ""}
         </div>
         <div class="lineup-player away">
           ${a ? `
-            <span class="lineup-name">${fantaNameHtml(a.name,a.id)}</span>
+            <span class="lineup-name">${fantaLineupNameHtml(a.name,a.id,"away")}</span>
+            <span class="lineup-dash">-</span>
             <span class="lineup-number">${esc(a.jersey || "")}</span>
           ` : ""}
         </div>
@@ -6855,15 +6876,11 @@
         </div>`
       : "";
 
-    const pitch = startersPitchHtml(m);
-
     const starters = (home.starters?.length || away.starters?.length)
       ? `<div class="lineup-heading">Titolari</div>
-         ${pitch || `
-           <div class="lineup-grid">
-             ${lineupRowsHtml(home.starters || [],away.starters || [])}
-           </div>
-         `}`
+         <div class="lineup-grid">
+           ${lineupRowsHtml(home.starters || [],away.starters || [])}
+         </div>`
       : "";
 
     const bench = (home.bench?.length || away.bench?.length)
