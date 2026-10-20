@@ -4727,8 +4727,16 @@
     }
 
     if(a.kind === "goaldisallowed"){
-      return sameTimelinePerson(a.player,b.player) ||
-        sameTimelineAbbreviatedAlias(a.player,b.player);
+      if(sameTimelinePerson(a.player,b.player) ||
+         sameTimelineAbbreviatedAlias(a.player,b.player)) return true;
+      // A disallowed goal can be reported with inconsistent first names
+      // across ESPN feeds (e.g. G. Frigan / M. Frigan). For this event
+      // type only, same team + exact minute + same surname is sufficient.
+      // The side and exact-minute checks are already performed above.
+      const one = timelinePersonSignature(a.player);
+      const two = timelinePersonSignature(b.player);
+      return !!(one && two && one.surname.length >= 4 &&
+        one.surname === two.surname);
     }
 
     // Repeated VAR decisions are removed only if their descriptions match.
