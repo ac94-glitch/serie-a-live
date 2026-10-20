@@ -18,7 +18,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" id="statusBarStyle" content="default">
   <meta name="apple-mobile-web-app-title" content="Serie A Live">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="app-version" content="3.6.17">
+  <meta name="app-version" content="3.7.0">
   <script>
     (() => {
       const key = "serie-a-live-theme";
@@ -1344,7 +1344,7 @@
       height:64px;
       padding:5px;
       display:grid;
-      grid-template-columns:repeat(4,minmax(0,1fr));
+      grid-template-columns:repeat(3,minmax(0,1fr));
       gap:2px;
       overflow:hidden;
       isolation:isolate;
@@ -2177,7 +2177,7 @@
 
     .team-sheet-stats{
       display:grid;
-      grid-template-columns:repeat(4,minmax(0,1fr));
+      grid-template-columns:repeat(3,minmax(0,1fr));
       gap:7px;
       margin-top:1px;
     }
@@ -2990,6 +2990,33 @@
       font-style:normal;
     }
 
+
+    /* Fanta 3.7 — extends the existing app's card, text and navigation language. */
+    .stats-switch{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;padding:5px;margin:0 0 14px;background:var(--card);border:1px solid var(--line);border-radius:var(--ui-radius-inner)}
+    .stats-switch button{border:0;background:transparent;color:var(--muted);border-radius:10px;padding:11px 2px;font-size:12px;font-weight:750;cursor:pointer}
+    .stats-switch button.active{background:var(--accent-soft);color:var(--accent)}
+    .fanta-intro{font-size:13px;color:var(--muted);line-height:1.5;margin:-3px 0 14px}
+    .fanta-card{background:var(--card);border:1px solid var(--line);border-radius:var(--ui-radius-card);box-shadow:var(--shadow);padding:14px;margin-bottom:12px}
+    .fanta-search{display:block;width:100%;min-height:44px;padding:11px 12px;border:1px solid var(--line);border-radius:var(--ui-radius-control);background:var(--surface-soft);color:var(--ink);font-size:15px;outline:none}
+    .fanta-search:focus{border-color:var(--accent)}
+    .fanta-caption{font-size:12px;color:var(--muted);margin:9px 0;line-height:1.45}
+    .fanta-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);min-height:54px}
+    .fanta-row:last-child{border-bottom:0}
+    .fanta-person{flex:1;min-width:0}
+    .fanta-person strong{display:block;font-size:14px;font-weight:750;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .fanta-person small{display:block;color:var(--muted);font-size:12px;margin-top:3px}
+    .fanta-action{border:1px solid var(--line);background:var(--surface-soft);color:var(--accent);font-size:12px;font-weight:800;border-radius:10px;padding:9px 11px;white-space:nowrap;cursor:pointer}
+    .fanta-action.remove{color:var(--muted)}
+    .fanta-role-title{font-size:13px;font-weight:800;color:var(--ink);margin:16px 0 3px}
+    .fanta-role-count{color:var(--muted);font-weight:600}
+    .fanta-tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+    .fanta-tools button,.fanta-import-label{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);border-radius:var(--ui-radius-control);background:var(--surface-soft);color:var(--ink);padding:10px 12px;font-size:12px;font-weight:750;cursor:pointer}
+    .fanta-import-label input{display:none}
+    .fanta-star,.fanta-highlight{color:#b98919!important;font-weight:800!important}
+    html.theme-dark .fanta-star,html.theme-dark .fanta-highlight{color:#f2c45b!important}
+    .fanta-star{display:inline-block;margin-right:3px}
+    .fanta-role-select{padding:7px 5px;border-radius:9px;border:1px solid var(--line);background:var(--surface-soft);color:var(--ink);font-size:12px}
+    .fanta-empty{font-size:13px;color:var(--muted);padding:12px 0}
 </style>
   <link
     rel="stylesheet"
@@ -3079,17 +3106,13 @@
       <span class="ico" aria-hidden="true"><i class="ph ph-soccer-ball"></i></span>
       <span>PARTITE</span>
     </button>
-    <button class="tab" data-tab="standings">
-      <span class="ico" aria-hidden="true"><i class="ph ph-ranking"></i></span>
-      <span>CLASSIFICA</span>
+    <button class="tab" data-tab="stats">
+      <span class="ico" aria-hidden="true"><i class="ph ph-chart-bar"></i></span>
+      <span>STATISTICHE</span>
     </button>
-    <button class="tab" data-tab="scorers">
-      <span class="ico" aria-hidden="true"><i class="ph ph-target"></i></span>
-      <span>MARCATORI</span>
-    </button>
-    <button class="tab" data-tab="assists">
-      <span class="ico" aria-hidden="true"><i class="ph ph-sneaker"></i></span>
-      <span>ASSIST</span>
+    <button class="tab" data-tab="fanta">
+      <span class="ico" aria-hidden="true"><i class="ph ph-star"></i></span>
+      <span>FANTA</span>
     </button>
     </nav>
   </div>
@@ -3120,6 +3143,7 @@
 
   const THEME_KEY = "serie-a-live-theme";
   let activeTab = "matches";
+  let activeStatsTab = "standings";
   let rounds = {};
   let currentRound = 1;
   let selectedRound = 1;
@@ -3154,6 +3178,199 @@
   const esc = value => String(value ?? "")
     .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
     .replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+
+  // Fanta: season-specific local roster. IDs preferred; normalized names are
+  // used only as fallback for ESPN events that do not expose an athlete ID.
+  const FANTA_STORE = "serie-a-live-fanta-classico-v1";
+  const fantaRoles = ["P","D","C","A"];
+  let fantaRoster = loadFantaRoster();
+  let fantaDirectory = [];
+  let fantaDirectoryLoaded = false;
+  let fantaDirectoryLoading = null;
+  let fantaSearchValue = "";
+  let fantaSearchTimer = null;
+  function normFantaName(value){
+    return String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+      .toLowerCase().replace(/[^a-z0-9 ]/g," ").replace(/\s+/g," ").trim();
+  }
+  function fantaSurname(value){
+    const v=normFantaName(value).split(" ");
+    return v.length ? v[v.length-1] : "";
+  }
+  function loadFantaRoster(){
+    try{
+      const data=JSON.parse(localStorage.getItem(FANTA_STORE)||"[]");
+      return Array.isArray(data) ? data.filter(p=>p && p.name && fantaRoles.includes(p.role)).slice(0,120) : [];
+    }catch(_){return []}
+  }
+  function saveFantaRoster(){
+    try{localStorage.setItem(FANTA_STORE,JSON.stringify(fantaRoster))}catch(_){}
+  }
+  function fantaKey(p){return p.id ? "id:"+String(p.id) : "name:"+normFantaName(p.name)+"|"+normFantaName(p.team)}
+  function isMyPlayer(name,id="",team=""){
+    const norm=normFantaName(name);
+    if(!norm) return false;
+    const abbreviated=/^[a-z]\s/.test(norm);
+    return fantaRoster.some(p=>{
+      if(id && p.id && String(id)===String(p.id)) return true;
+      const saved=normFantaName(p.name);
+      if(saved===norm) return true;
+      const short=normFantaName(shortPlayerName(p.name));
+      if(short===norm) return true;
+      // Avoid surname-only matches: distinct players can share a surname.
+      if(abbreviated && norm===short) return true;
+      return false;
+    });
+  }
+  function fantaNameHtml(name,id="",team=""){
+    const short=shortPlayerName(name);
+    return isMyPlayer(name,id,team)
+      ? `<span class="fanta-highlight"><span class="fanta-star" aria-label="Nella mia rosa">★</span>${esc(short)}</span>`
+      : esc(short);
+  }
+  function fantaFullNameHtml(name,id="",team=""){
+    return isMyPlayer(name,id,team)
+      ? `<span class="fanta-highlight"><span class="fanta-star" aria-label="Nella mia rosa">★</span>${esc(name)}</span>`
+      : esc(name);
+  }
+  function fantaRoleFromEspn(a){
+    const pos=a?.position||{};
+    const raw=[pos?.abbreviation,pos?.name,pos?.displayName,a?.position?.type].filter(Boolean).join(" ").toLowerCase();
+    if(/goalkeeper|portiere|\b(g|gk)\b|\bgoalie\b/.test(raw)) return "P";
+    if(/defender|difensore|\b(cb|lb|rb|lwb|rwb|df|d)\b/.test(raw)) return "D";
+    if(/midfield|centrocamp|\b(cm|cdm|cam|lm|rm|mf|m)\b/.test(raw)) return "C";
+    if(/forward|attacker|attaccante|striker|\b(st|cf|lw|rw|fw|f)\b/.test(raw)) return "A";
+    return "C"; // editable before adding
+  }
+  function fantaTeamCompetitors(){
+    const map=new Map();
+    for(const ev of allEvents){
+      for(const c of ev?.competitions?.[0]?.competitors||[]){
+        const t=c?.team||{};
+        if(t.id) map.set(String(t.id),{id:String(t.id),name:t.shortDisplayName||t.displayName||t.name||""});
+      }
+    }
+    return [...map.values()];
+  }
+  async function ensureFantaDirectory(){
+    if(fantaDirectoryLoaded) return;
+    if(fantaDirectoryLoading) return fantaDirectoryLoading;
+    fantaDirectoryLoading=(async()=>{
+      const teams=fantaTeamCompetitors();
+      const directory=new Map();
+      let index=0;
+      const worker=async()=>{
+        while(index<teams.length){
+          const t=teams[index++];
+          try{
+            const response=await getJson(`${SITE}/teams/${encodeURIComponent(t.id)}/roster`);
+            const groups=Array.isArray(response?.athletes)?response.athletes:(response?.roster||[]);
+            const list=flattenRosterEntries(groups);
+            for(const item of list){
+              const a=item?.athlete||item?.player||item;
+              const name=a?.displayName||a?.fullName||a?.name;
+              if(!name) continue;
+              const id=String(a?.id||"");
+              const p={id,name,team:t.name,teamId:t.id,role:fantaRoleFromEspn(a)};
+              directory.set(fantaKey(p),p);
+            }
+          }catch(_){/* unavailable team rosters should not block the page */}
+        }
+      };
+      await Promise.all(Array.from({length:Math.min(5,teams.length)},worker));
+      fantaDirectory=[...directory.values()].sort((a,b)=>a.name.localeCompare(b.name,"it"));
+      fantaDirectoryLoaded=true;
+    })().finally(()=>{fantaDirectoryLoading=null});
+    return fantaDirectoryLoading;
+  }
+  function fantaStatsSwitcher(){
+    return `<div class="stats-switch" role="group" aria-label="Statistiche">
+      ${[["standings","Classifica"],["scorers","Marcatori"],["assists","Assist"]].map(([key,label])=>
+        `<button type="button" data-stats-tab="${key}" class="${activeStatsTab===key?"active":""}" aria-pressed="${activeStatsTab===key}">${label}</button>`).join("")}
+    </div>`;
+  }
+  function wrapStatsHtml(html){return fantaStatsSwitcher()+html}
+  function fantaPlayerRow(p,mode){
+    const key=encodeURIComponent(fantaKey(p));
+    return `<div class="fanta-row"><div class="fanta-person"><strong>${esc(p.name)}</strong><small>${esc(p.team||"Squadra non disponibile")}</small></div>
+      ${mode==="search"?`<select class="fanta-role-select" data-fanta-role="${key}" aria-label="Ruolo ${esc(p.name)}">${fantaRoles.map(r=>`<option value="${r}" ${r===p.role?"selected":""}>${r}</option>`).join("")}</select>`:""}
+      <button type="button" class="fanta-action ${mode==="roster"?"remove":""}" data-fanta-${mode==="roster"?"remove":"add"}="${key}">${mode==="roster"?"Rimuovi":"+ Aggiungi"}</button></div>`;
+  }
+  function renderFanta(){
+    clearError();
+    const grouped=fantaRoles.map(role=>({role,players:fantaRoster.filter(p=>p.role===role).sort((a,b)=>a.name.localeCompare(b.name,"it"))}));
+    content.innerHTML=`<h2 class="section-title">La mia rosa <span class="fanta-star">★</span></h2>
+      <p class="fanta-intro">I tuoi giocatori saranno evidenziati in oro nelle partite, nelle formazioni e nelle statistiche.</p>
+      <div class="fanta-card"><input class="fanta-search" id="fantaSearch" type="search" autocomplete="off" placeholder="Cerca giocatore o squadra…" value="${esc(fantaSearchValue)}" aria-label="Cerca giocatore">
+        <div id="fantaSearchResults" aria-live="polite"></div></div>
+      <div class="fanta-card"><div class="section-title" style="margin:0 0 5px">Giocatori (${fantaRoster.length})</div>
+        ${fantaRoster.length?grouped.map(g=>`<div class="fanta-role-title">${g.role} <span class="fanta-role-count">(${g.players.length})</span></div>${g.players.map(p=>fantaPlayerRow(p,"roster")).join("")}`).join(""):'<div class="fanta-empty">La tua rosa è vuota. Cerca un giocatore per iniziare.</div>'}
+        <div class="fanta-tools"><button type="button" id="fantaExport"><i class="ph ph-download-simple"></i> Esporta rosa</button>
+          <label class="fanta-import-label"><i class="ph ph-upload-simple"></i> Importa rosa<input type="file" id="fantaImport" accept="application/json,.json"></label></div>
+        <div class="fanta-caption">La rosa è salvata su questo dispositivo. Esporta una copia per trasferirla o recuperarla.</div></div>`;
+    const input=document.getElementById("fantaSearch");
+    input?.addEventListener("input",()=>{
+      fantaSearchValue=input.value;
+      clearTimeout(fantaSearchTimer);
+      fantaSearchTimer=setTimeout(updateFantaSearchResults,150);
+    });
+    content.querySelectorAll("[data-fanta-remove]").forEach(btn=>btn.addEventListener("click",()=>{
+      const key=decodeURIComponent(btn.dataset.fantaRemove);
+      fantaRoster=fantaRoster.filter(p=>fantaKey(p)!==key);
+      saveFantaRoster();renderFanta();
+    }));
+    document.getElementById("fantaExport")?.addEventListener("click",()=>{
+      const blob=new Blob([JSON.stringify({format:"serie-a-live-fanta-v1",players:fantaRoster},null,2)],{type:"application/json"});
+      const url=URL.createObjectURL(blob);const a=document.createElement("a");
+      a.href=url;a.download="serie-a-live-mia-rosa.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+    });
+    document.getElementById("fantaImport")?.addEventListener("change",async e=>{
+      const file=e.target.files?.[0];if(!file)return;
+      try{
+        const obj=JSON.parse(await file.text());
+        if(obj?.format!=="serie-a-live-fanta-v1"||!Array.isArray(obj.players)) throw new Error("Formato non valido");
+        const next=obj.players.filter(p=>p && typeof p.name==="string" && fantaRoles.includes(p.role)).slice(0,120)
+          .map(p=>({id:String(p.id||""),name:p.name.slice(0,100),team:String(p.team||"").slice(0,80),teamId:String(p.teamId||""),role:p.role}));
+        fantaRoster=[...new Map(next.map(p=>[fantaKey(p),p])).values()];
+        saveFantaRoster();renderFanta();
+      }catch(_){alert("File rosa non valido. Importa un file esportato da Serie A Live.")}
+    });
+    updateFantaSearchResults();
+    if(!fantaDirectoryLoaded){
+      ensureFantaDirectory().then(()=>{if(activeTab==="fanta")updateFantaSearchResults()});
+    }
+  }
+  function updateFantaSearchResults(){
+    const host=document.getElementById("fantaSearchResults");
+    if(!host)return;
+    const q=normFantaName(fantaSearchValue);
+    if(!q){host.innerHTML='<div class="fanta-caption">Cerca per nome o squadra per aggiungere un giocatore.</div>';return}
+    const found=fantaDirectory.filter(p=>(normFantaName(p.name)+" "+normFantaName(p.team)).includes(q) && !fantaRoster.some(x=>fantaKey(x)===fantaKey(p))).slice(0,35);
+    host.innerHTML=found.length?`<div class="fanta-caption">${found.length===35?"Primi 35 risultati":"Risultati"}</div>${found.map(p=>fantaPlayerRow(p,"search")).join("")}`:
+      `<div class="fanta-empty">${fantaDirectoryLoaded?"Nessun giocatore trovato nella lista ESPN.":"Caricamento rose ESPN in corso…"}</div>`;
+    if(fantaDirectoryLoaded && !found.length && q.length>=3){
+      host.innerHTML+=`<div class="fanta-caption">Non lo trovi? Aggiungilo manualmente, scegliendo il ruolo.</div>
+        <div class="fanta-row"><div class="fanta-person"><strong>${esc(fantaSearchValue.trim())}</strong><small>Inserimento manuale</small></div>
+        <select id="fantaManualRole" class="fanta-role-select" aria-label="Ruolo"><option>P</option><option>D</option><option selected>C</option><option>A</option></select>
+        <button class="fanta-action" id="fantaManualAdd">+ Aggiungi</button></div>`;
+      host.querySelector("#fantaManualAdd")?.addEventListener("click",()=>{
+        const name=fantaSearchValue.trim().slice(0,100);
+        const role=host.querySelector("#fantaManualRole")?.value||"C";
+        if(!name||!fantaRoles.includes(role))return;
+        const p={id:"",name,team:"",teamId:"",role};
+        if(!fantaRoster.some(x=>fantaKey(x)===fantaKey(p)))fantaRoster.push(p);
+        fantaSearchValue="";saveFantaRoster();renderFanta();
+      });
+    }
+    host.querySelectorAll("[data-fanta-add]").forEach(btn=>btn.addEventListener("click",()=>{
+      const key=decodeURIComponent(btn.dataset.fantaAdd);
+      const p=fantaDirectory.find(x=>fantaKey(x)===key);if(!p)return;
+      const role=host.querySelector(`[data-fanta-role="${btn.dataset.fantaAdd}"]`)?.value||p.role;
+      if(!fantaRoles.includes(role))return;
+      if(!fantaRoster.some(x=>fantaKey(x)===key)) fantaRoster.push({...p,role});
+      saveFantaRoster();renderFanta();
+    }));
+  }
 
   function shortPlayerName(name){
     const clean = String(name || "").trim().replace(/\s+/g," ");
@@ -5065,6 +5282,7 @@
     );
 
     return {
+      id:String(athlete?.id||""),
       name,
       jersey,
       starter,
@@ -5619,19 +5837,19 @@
   function eventInfoHtml(e){
     if(e.kind === "sub"){
       return `
-        <div class="timeline-sub-in">${esc(shortPlayerName(e.playerIn))}</div>
-        <span class="timeline-sub-out">${esc(shortPlayerName(e.playerOut))}</span>
+        <div class="timeline-sub-in">${fantaNameHtml(e.playerIn)}</div>
+        <span class="timeline-sub-out">${fantaNameHtml(e.playerOut)}</span>
       `;
     }
 
     if(e.kind === "injury"){
-      return `<div class="timeline-main">${esc(shortPlayerName(e.player))}</div>
+      return `<div class="timeline-main">${fantaNameHtml(e.player)}</div>
         <span class="timeline-event-note danger">Infortunio</span>`;
     }
 
     if(e.kind === "goaldisallowed"){
       const player = e.player && e.player !== "—"
-        ? `<div class="timeline-main">${esc(shortPlayerName(e.player))}</div>`
+        ? `<div class="timeline-main">${fantaNameHtml(e.player)}</div>`
         : `<div class="timeline-main">Decisione VAR</div>`;
 
       return `${player}
@@ -5663,22 +5881,22 @@
     }
 
     if(e.kind === "secondyellow"){
-      return `<div class="timeline-main">${esc(shortPlayerName(e.player))}</div>
+      return `<div class="timeline-main">${fantaNameHtml(e.player)}</div>
         <span class="timeline-event-note danger">Secondo giallo</span>`;
     }
 
     if(e.kind === "penmiss"){
-      return `<div class="timeline-main">${esc(shortPlayerName(e.player))}</div>
+      return `<div class="timeline-main">${fantaNameHtml(e.player)}</div>
         <span class="timeline-event-note danger">Rigore sbagliato</span>`;
     }
 
     if(e.kind === "pensaved"){
-      return `<div class="timeline-main">${esc(shortPlayerName(e.player))}</div>
+      return `<div class="timeline-main">${fantaNameHtml(e.player)}</div>
         <span class="timeline-event-note">Rigore parato</span>`;
     }
 
     const assist = e.kind === "goal" && e.assist && !e.ownGoal
-      ? `<span class="timeline-assist">${assistPassIcon()}${esc(shortPlayerName(e.assist))}</span>`
+      ? `<span class="timeline-assist">${assistPassIcon()}${fantaNameHtml(e.assist)}</span>`
       : "";
 
     const note = e.kind === "goal" && e.penalty
@@ -5686,7 +5904,7 @@
       : "";
 
     const og = e.ownGoal ? " (OG)" : "";
-    return `<div class="timeline-main">${esc(shortPlayerName(e.player) + og)}</div>${note}${assist}`;
+    return `<div class="timeline-main">${fantaNameHtml(e.player)}${esc(og)}</div>${note}${assist}`;
   }
 
   function eventMinuteHtml(e){
@@ -5838,12 +6056,12 @@
         <div class="lineup-player home">
           ${h ? `
             <span class="lineup-number">${esc(h.jersey || "")}</span>
-            <span class="lineup-name">${esc(shortPlayerName(h.name))}</span>
+            <span class="lineup-name">${fantaNameHtml(h.name,h.id)}</span>
           ` : ""}
         </div>
         <div class="lineup-player away">
           ${a ? `
-            <span class="lineup-name">${esc(shortPlayerName(a.name))}</span>
+            <span class="lineup-name">${fantaNameHtml(a.name,a.id)}</span>
             <span class="lineup-number">${esc(a.jersey || "")}</span>
           ` : ""}
         </div>
@@ -6351,7 +6569,7 @@
       "
     >
       <span class="pitch-player-dot">${esc(player.jersey || "•")}</span>
-      <span class="pitch-player-name">${esc(shortPlayerName(player.name))}</span>
+      <span class="pitch-player-name">${fantaNameHtml(player.name,player.id)}</span>
     </div>`;
   }
 
@@ -7542,15 +7760,15 @@
 
       html += `${legend}</div>`;
 
-      if(activeTab !== "standings") return;
+      if(activeTab !== "stats" || activeStatsTab !== "standings") return;
 
-      content.innerHTML = html;
+      content.innerHTML = activeTab === "stats" ? wrapStatsHtml(html) : html;
       setupTeamLinks();
       setUpdated();
     }catch(e){
-      if(activeTab !== "standings") return;
+      if(activeTab !== "stats" || activeStatsTab !== "standings") return;
 
-      content.innerHTML = `<div class="message">Non riesco a caricare la classifica in questo momento.</div>`;
+      content.innerHTML = wrapStatsHtml(`<div class="message">Non riesco a caricare la classifica in questo momento.</div>`);
       showError("Errore nel collegamento ai dati della classifica.");
     }
   }
@@ -7992,7 +8210,7 @@
           <div class="team-sheet-section-title">Miglior marcatore</div>
           ${scorer
             ? `<div class="team-top-scorer">
-                <div class="team-top-scorer-name">${esc(scorer.name)}</div>
+                <div class="team-top-scorer-name">${fantaFullNameHtml(scorer.name,scorer.id)}</div>
                 <div class="team-top-scorer-value">${esc(scorer.value)}</div>
               </div>`
             : `<div class="team-form-empty">Dato non disponibile.</div>`
@@ -8098,7 +8316,7 @@
         const team = eventTeamName(ev, teamId);
         const key = String(playerId);
 
-        const row = totals.get(key) || {name, team, value:0};
+        const row = totals.get(key) || {id:String(scorer.id||""),name, team, value:0};
         row.name = name;
         if(team && team !== "—") row.team = team;
         row.value += 1;
@@ -8108,7 +8326,6 @@
 
     return [...totals.values()]
       .sort((a,b)=>b.value-a.value || a.name.localeCompare(b.name,"it"))
-      .slice(0,50)
       .map((r,i)=>({rank:i+1,...r}));
   }
 
@@ -8202,7 +8419,7 @@
           if(!Array.isArray(cache[ev.id])) cache[ev.id] = [];
         }
         done++;
-        if(activeTab === "assists" && toFetch.length){
+        if(activeTab === "stats" && activeStatsTab === "assists" && toFetch.length){
           content.innerHTML = `<div class="message"><div class="spinner"></div>Carico gli assist… ${done}/${done + toFetch.length}</div>`;
         }
       }
@@ -8217,7 +8434,7 @@
       const list = cache[ev.id] || [];
       for(const a of list){
         const key = a.id || `${a.name}|${a.team}`;
-        const row = totals.get(key) || {name:a.name, team:a.team, value:0};
+        const row = totals.get(key) || {id:String(a.id||""),name:a.name, team:a.team, value:0};
         row.value += 1;
         totals.set(key,row);
       }
@@ -8225,7 +8442,6 @@
 
     return [...totals.values()]
       .sort((a,b)=>b.value-a.value || a.name.localeCompare(b.name,"it"))
-      .slice(0,50)
       .map((r,i)=>({rank:i+1,...r}));
   }
 
@@ -8258,10 +8474,10 @@
         leadersCache[type] = rows;
       }
 
-      if(activeTab !== type) return;
+      if(activeTab !== "stats" || activeStatsTab !== type) return;
 
       if(!rows.length){
-        content.innerHTML = `<div class="message">${isGoals ? "Nessun marcatore" : "Nessun assist"} disponibile al momento.</div>`;
+        content.innerHTML = wrapStatsHtml(`<div class="message">${isGoals ? "Nessun marcatore" : "Nessun assist"} disponibile al momento.</div>`);
         return;
       }
       let html = `<h2 class="section-title">${isGoals ? "Marcatori" : "Assist"}</h2><div class="table-card">`;
@@ -8275,26 +8491,34 @@
               ? `<img class="player-logo" src="${esc(logo)}" alt="" loading="lazy">`
               : `<span class="player-logo" aria-hidden="true"></span>`
             }
-            <div class="player-name">${esc(r.name)}</div>
+            <div class="player-name">${fantaFullNameHtml(r.name,r.id,r.team)}</div>
           </div>
           <div class="leader-value">${esc(r.value)}</div>
         </div>`;
       });
       html += `</div>`;
-      content.innerHTML = html;
+      content.innerHTML = activeTab === "stats" ? wrapStatsHtml(html) : html;
       setUpdated();
     }catch(e){
-      content.innerHTML = `<div class="message">${isGoals ? "La classifica marcatori" : "La classifica assist"} non è disponibile in questo momento.</div>`;
+      if(activeTab === "stats" && activeStatsTab === type) content.innerHTML = wrapStatsHtml(`<div class="message">${isGoals ? "La classifica marcatori" : "La classifica assist"} non è disponibile in questo momento.</div>`);
       showError("Non riesco a leggere tutte le statistiche dai tabellini ESPN in questo momento.");
     }
   }
 
   async function renderActive(){
     if(activeTab === "matches") return renderMatches();
-    if(activeTab === "standings") return renderStandings();
-    if(activeTab === "scorers") return renderLeaders("scorers");
-    if(activeTab === "assists") return renderLeaders("assists");
+    if(activeTab === "stats") return activeStatsTab === "standings" ? renderStandings() : renderLeaders(activeStatsTab);
+    if(activeTab === "fanta") return renderFanta();
   }
+
+content.addEventListener("click",e=>{
+    const btn=e.target.closest("[data-stats-tab]");
+    if(!btn || activeTab!=="stats")return;
+    const next=btn.dataset.statsTab;
+    if(!["standings","scorers","assists"].includes(next)||next===activeStatsTab)return;
+    activeStatsTab=next;
+    renderActive();
+  });
 
 document.querySelectorAll(".tab").forEach(btn=>{
     btn.addEventListener("click",()=>{
@@ -8415,7 +8639,7 @@ document.querySelectorAll(".tab").forEach(btn=>{
       selectedRound === currentRound;
 
     const watchingStandings =
-      activeTab === "standings";
+      activeTab === "stats" && activeStatsTab === "standings";
 
     if(!watchingMatches && !watchingStandings) return;
 
@@ -8481,7 +8705,16 @@ document.querySelectorAll(".tab").forEach(btn=>{
 
       // Every fresh app launch starts from the current matchday.
       activeTab = "matches";
-      document.querySelectorAll(".tab").forEach(btn=>{
+      content.addEventListener("click",e=>{
+    const btn=e.target.closest("[data-stats-tab]");
+    if(!btn || activeTab!=="stats")return;
+    const next=btn.dataset.statsTab;
+    if(!["standings","scorers","assists"].includes(next)||next===activeStatsTab)return;
+    activeStatsTab=next;
+    renderActive();
+  });
+
+document.querySelectorAll(".tab").forEach(btn=>{
         btn.classList.toggle(
           "active",
           btn.dataset.tab === "matches"
